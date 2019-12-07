@@ -1,7 +1,7 @@
 # Golang CircleCI 2.1 configuration file
-version: 2
+version: 2.1
 
-executor:
+executors:
   golang:
     docker:
       - image: circleci/golang:1.13
@@ -17,6 +17,6 @@ workflows:
   version: 2
   continuous:
     jobs:
-    - build
+      - build
 
 
