@@ -56,7 +56,7 @@ workflows:
       - publish:
           requires:
             - dist
-          filter:
+          filters:
             branches:
               ignore: /.*/
             tags:
