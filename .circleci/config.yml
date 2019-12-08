@@ -51,8 +51,14 @@ workflows:
       - build
   delivery:
     jobs:
-      - check
-      - dist
+      - check:
+          filters:
+            tags:
+              only: /.*/
+      - dist:
+          filters:
+            tags:
+              only: /.*/
       - publish:
           requires:
             - dist
