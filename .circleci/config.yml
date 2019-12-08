@@ -7,16 +7,31 @@ executors:
       - image: circleci/golang:1.13
 
 jobs:
+  check:
+    executor: golang
+    steps:
+      - checkout
+      - run: make check
   build:
     executor: golang
     steps:
       - checkout
-      - run: make
+      - run: make build
+  dist:
+    executor: golang
+    steps:
+      - checkout
+      - run: make dist
 
 workflows:
   version: 2
   continuous:
     jobs:
+      - check
       - build
+  delivery:
+    jobs:
+      - check
+      - dist
 
 
