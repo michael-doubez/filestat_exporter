@@ -1,14 +1,74 @@
-# Golang CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-go/ for more details
-version: 2
-jobs:
-  build:
+# Golang CircleCI 2.1 configuration file
+version: 2.1
+
+executors:
+  golang:
     docker:
       - image: circleci/golang:1.13
 
-    working_directory: /go/src/github.com/michael.doubez/filestat_exporter
+jobs:
+  check:
+    executor: golang
     steps:
       - checkout
-      - run: make
+      - run: make check
+  build:
+    executor: golang
+    steps:
+      - checkout
+      - run: make build
+  dist:
+    executor: golang
+    steps:
+      - checkout
+      - run: make dist
+      - run: make version > dist/VERSION
+      - persist_to_workspace:
+          root: ./dist
+          paths:
+            - filestat_exporter-*.tar.gz
+            - VERSION
+  publish:
+    executor: golang
+    steps:
+      - attach_workspace:
+          at: ./dist
+      - run:
+          name: "Generate SHA256 Checksum"
+          command: |
+            cd dist
+            sha256sum -b filestat_exporter-*.tar.gz > sha256sums.txt
+      - run:
+          name: "Publish on GitHub"
+          command: |
+            go get github.com/tcnksm/ghr
+            VERSION=$(cat dist/VERSION)
+            rm dist/VERSION
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./dist/
+
+workflows:
+  version: 2
+  continuous:
+    jobs:
+      - check
+      - build
+  delivery:
+    jobs:
+      - check:
+          filters:
+            tags:
+              only: /.*/
+      - dist:
+          filters:
+            tags:
+              only: /.*/
+      - publish:
+          requires:
+            - check
+            - dist
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v\d+\.\d+\.\d+$/
 

@@ -1,6 +1,6 @@
 GITHUB_ORG  = mdoubez
 GITHUB_REPO = filestat_exporter
-VERSION     = 0.0.1
+VERSION    ?= 0.0.1
 
 # Go projet
 GO = go
@@ -16,6 +16,11 @@ LDFLAGS = -s -X github.com/prometheus/common/version.Version=$(VERSION) \
 		     -X github.com/prometheus/common/version.BuildUser=$(BUILDUSER) \
 		     -X github.com/prometheus/common/version.BuildDate=$(BUILDDATE)
 
+# Distribution
+DIST_DIR?=./dist
+EXPORTER=filestat_exporter
+DIST_ARCHITECTURES=darwin-amd64 linux-amd64 windows-amd64
+
 # Main source files
 SRCS = $(wildcard *.go)
 
@@ -27,9 +32,11 @@ SRCS = $(wildcard *.go)
 # - check: run all following checks
 #   - fmt: run formating check
 #   - vet: vetting code
+# - dist: build distribution packages
+#   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
+# - version: display version number
 # - run: launch exporter on sample config
-.PHONY: all build clean check fmt vet run
-EXPORTER=filestat_exporter
+.PHONY: all build clean check dist fmt vet run
 
 all:: vet fmt build
 
@@ -49,10 +56,34 @@ vet:
 run:
 	@$(GO) run $(SRCS) --log.level=debug '*.*'
 
-# ------------------------------------------------------------------------
-# Build exporter
+version:
+	@echo $(VERSION)
 
+DIST_EXPORTER=$(DIST_DIR)/$(EXPORTER)-$(VERSION)
+dist: $(foreach ARCH, $(DIST_ARCHITECTURES), $(DIST_EXPORTER).$(ARCH).tar.gz)
+dist-%: $(DIST_EXPORTER).$*.tar.gz
+
+# ------------------------------------------------------------------------
+# Build and package exporter
+
+PACKAGE_FILES = LICENSE
 
 $(EXPORTER): $(SRCS)
-	@go build -ldflags "$(LDFLAGS)" $(SRC)
+	@$(GO) build -ldflags "$(LDFLAGS)" $(SRC)
+
+$(DIST_EXPORTER)/:
+	@mkdir -p $@
+
+$(DIST_EXPORTER).%.tar.gz: $(DIST_EXPORTER).%/$(EXPORTER) $(PACKAGE_FILES)
+	@echo "Packaging $(notdir $@)"
+	@cp -f $(PACKAGE_FILES)  $(DIST_EXPORTER).$*/
+	@cd $(dir $<) ; tar czf $(abspath $@) .
+
+# Gnerating exporter for archi
+$(DIST_EXPORTER).%/$(EXPORTER): $(DIST_EXPORTER)/
+$(DIST_EXPORTER).%/$(EXPORTER): GOOS=$(word 1,$(subst -, ,$*))
+$(DIST_EXPORTER).%/$(EXPORTER): GOARCH=$(word 2,$(subst -, ,$*))
+$(DIST_EXPORTER).%/$(EXPORTER): $(SRCS)
+	@echo "Building $(notdir $@) GOOS=$(GOOS) GOARCH=$(GOARCH)"
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRCS)
 
