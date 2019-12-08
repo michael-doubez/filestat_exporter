@@ -25,7 +25,7 @@ jobs:
       - persist_to_workspace:
           root: ./dist
           paths:
-            - filestats_exporter-*.tar.gz
+            - filestat_exporter-*.tar.gz
   publish:
     executor: golang
     steps:
@@ -35,7 +35,7 @@ jobs:
           name: "Generate SHA256 Checksum"
           command: |
             cd dist
-            sha256sum -b filestats_exporter-*.tar.gz > sha256sum.txt
+            sha256sum -b filestat_exporter-*.tar.gz > sha256sum.txt
       - run:
           name: "Publish on GitHub"
           command: |
