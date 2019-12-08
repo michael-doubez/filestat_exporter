@@ -64,10 +64,11 @@ workflows:
               only: /.*/
       - publish:
           requires:
+            - check
             - dist
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: /^\d+\.\d+\.\d+$/
+              only: /^v\d+\.\d+\.\d+$/
 
