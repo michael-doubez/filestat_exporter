@@ -1,6 +1,6 @@
 GITHUB_ORG  = mdoubez
 GITHUB_REPO = filestat_exporter
-VERSION     = 0.0.1
+VERSION    ?= 0.0.1
 
 # Go projet
 GO = go
@@ -34,6 +34,7 @@ SRCS = $(wildcard *.go)
 #   - vet: vetting code
 # - dist: build distribution packages
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
+# - version: display version number
 # - run: launch exporter on sample config
 .PHONY: all build clean check dist fmt vet run
 
@@ -54,6 +55,9 @@ vet:
 
 run:
 	@$(GO) run $(SRCS) --log.level=debug '*.*'
+
+version:
+	@echo $(VERSION)
 
 DIST_EXPORTER=$(DIST_DIR)/$(EXPORTER)-$(VERSION)
 dist: $(foreach ARCH, $(DIST_ARCHITECTURES), $(DIST_EXPORTER).$(ARCH).tar.gz)
