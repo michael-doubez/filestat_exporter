@@ -64,17 +64,23 @@ dist: $(foreach ARCH, $(DIST_ARCHITECTURES), $(DIST_EXPORTER).$(ARCH).tar.gz)
 dist-%: $(DIST_EXPORTER).$*.tar.gz
 
 # ------------------------------------------------------------------------
-# Build exporter
+# Build and package exporter
 
+PACKAGE_FILES = LICENSE
 
 $(EXPORTER): $(SRCS)
 	@$(GO) build -ldflags "$(LDFLAGS)" $(SRC)
 
 $(DIST_EXPORTER)/:
 	@mkdir -p $@
-$(DIST_EXPORTER).%.tar.gz: $(DIST_EXPORTER).%/$(EXPORTER)
+
+$(DIST_EXPORTER).%.tar.gz: $(DIST_EXPORTER).%/$(EXPORTER) $(PACKAGE_FILES)
 	@echo "Packaging $(notdir $@)"
+	@cp -f $(PACKAGE_FILES)  $(DIST_EXPORTER).$*/
 	@cd $(dir $<) ; tar czf $(abspath $@) .
+
+# Gnerating exporter for archi
+$(DIST_EXPORTER).%/$(EXPORTER): $(DIST_EXPORTER)/
 $(DIST_EXPORTER).%/$(EXPORTER): GOOS=$(word 1,$(subst -, ,$*))
 $(DIST_EXPORTER).%/$(EXPORTER): GOARCH=$(word 2,$(subst -, ,$*))
 $(DIST_EXPORTER).%/$(EXPORTER): $(SRCS)

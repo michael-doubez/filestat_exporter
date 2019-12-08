@@ -22,10 +22,12 @@ jobs:
     steps:
       - checkout
       - run: make dist
+      - run: make version > dist/VERSION
       - persist_to_workspace:
           root: ./dist
           paths:
             - filestat_exporter-*.tar.gz
+            - VERSION
   publish:
     executor: golang
     steps:
@@ -35,12 +37,13 @@ jobs:
           name: "Generate SHA256 Checksum"
           command: |
             cd dist
-            sha256sum -b filestat_exporter-*.tar.gz > sha256sum.txt
+            sha256sum -b filestat_exporter-*.tar.gz > sha256sums.txt
       - run:
           name: "Publish on GitHub"
           command: |
             go get github.com/tcnksm/ghr
-            VERSION=$(make version)
+            VERSION=$(cat dist/VERSION)
+            rm dist/VERSION
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./dist/
 
 workflows:
