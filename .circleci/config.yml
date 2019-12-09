@@ -11,6 +11,7 @@ jobs:
     executor: golang
     steps:
       - checkout
+      - run: go get -u golang.org/x/lint/golint
       - run: make check
   build:
     executor: golang
