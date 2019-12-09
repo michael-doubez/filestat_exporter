@@ -1,4 +1,4 @@
-GITHUB_ORG  = mdoubez
+GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
 VERSION    ?= 0.0.1
 
@@ -12,10 +12,10 @@ REVISION ?= $(shell git rev-parse --short HEAD)
 BUILDUSER ?= $(USER)
 BUILDDATE ?= $(shell date +%FT%T%z)
 LDFLAGS = -s -X github.com/prometheus/common/version.Version=$(VERSION) \
-		     -X github.com/prometheus/common/version.Branch=$(BRANCH) \
-		     -X github.com/prometheus/common/version.Revision=$(REVISION) \
-		     -X github.com/prometheus/common/version.BuildUser=$(BUILDUSER) \
-		     -X github.com/prometheus/common/version.BuildDate=$(BUILDDATE)
+             -X github.com/prometheus/common/version.Branch=$(BRANCH) \
+             -X github.com/prometheus/common/version.Revision=$(REVISION) \
+             -X github.com/prometheus/common/version.BuildUser=$(BUILDUSER) \
+             -X github.com/prometheus/common/version.BuildDate=$(BUILDDATE)
 
 # Distribution
 DIST_DIR?=./dist
@@ -35,8 +35,8 @@ SRCS = $(wildcard *.go)
 #   - vet: vetting code
 # - dist: build distribution packages
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
-# - version: display version number
 # - run: launch exporter on sample config
+# - version: display version number
 .PHONY: all build clean check dist fmt vet lint run dist dist-%
 
 all:: vet fmt build
@@ -76,21 +76,25 @@ dist-%: $(DIST_EXPORTER).%.tar.gz
 # ------------------------------------------------------------------------
 # Build and package exporter
 
-PACKAGE_FILES = LICENSE
+# List of files to include in packages
+PACKAGE_FILES = LICENSE NOTICE
 
+# Simple build for current os/architecture
 $(EXPORTER): $(SRCS)
 	@$(GO) build -ldflags "$(LDFLAGS)" $(SRC)
 
+# Ensure dist path exists
 $(DIST_EXPORTER)/:
 	@mkdir -p $@
 
+# Package distribution file
 $(DIST_EXPORTER).%.tar.gz: $(DIST_EXPORTER).%/$(EXPORTER) $(PACKAGE_FILES)
 	@echo "Packaging $(notdir $@)"
 	@cp -f $(PACKAGE_FILES)  $(DIST_EXPORTER).$*/
-	@cd $(dir $<) ; tar czf $(abspath $@) .
+	@cd $(DIST_DIR) ; tar czf $(abspath $@) $(notdir $(DIST_EXPORTER)).$*/
 	@rm -rf $(DIST_EXPORTER).$*/
 
-# Gnerating exporter for archi
+# Generating exporter for archi
 $(DIST_EXPORTER).%/$(EXPORTER): $(DIST_EXPORTER)/
 $(DIST_EXPORTER).%/$(EXPORTER): GOOS=$(word 1,$(subst -, ,$*))
 $(DIST_EXPORTER).%/$(EXPORTER): GOARCH=$(word 2,$(subst -, ,$*))
