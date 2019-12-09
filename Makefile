@@ -4,6 +4,7 @@ VERSION    ?= 0.0.1
 
 # Go projet
 GO = go
+GOLINT = $(shell $(GO) list -f {{.Target}} golang.org/x/lint/golint 2>/dev/null || true)
 
 # Inject version information
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
@@ -36,7 +37,7 @@ SRCS = $(wildcard *.go)
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
 # - version: display version number
 # - run: launch exporter on sample config
-.PHONY: all build clean check dist fmt vet run
+.PHONY: all build clean check dist fmt vet lint run dist dist-%
 
 all:: vet fmt build
 
@@ -45,13 +46,21 @@ build: $(EXPORTER)
 clean:
 	@rm -f $(EXPORTER)
 
-check: fmt vet
+check: fmt vet lint
 
 fmt:
 	@$(GO) fmt ./...
 
 vet:
 	@$(GO) vet ./...
+
+lint:
+ifeq ($(GOLINT),)
+	@echo >&2 "Warning: golint not installed - lint skipped"
+	@echo >&2 "         run 'go get -u golang.org/x/lint/golint' to install"
+else
+	@$(GOLINT) ./...
+endif
 
 run:
 	@$(GO) run $(SRCS) --log.level=debug '*.*'
@@ -61,7 +70,8 @@ version:
 
 DIST_EXPORTER=$(DIST_DIR)/$(EXPORTER)-$(VERSION)
 dist: $(foreach ARCH, $(DIST_ARCHITECTURES), $(DIST_EXPORTER).$(ARCH).tar.gz)
-dist-%: $(DIST_EXPORTER).$*.tar.gz
+dist-%: $(DIST_EXPORTER).%.tar.gz
+	@echo "Done generating $(notdir $<)"
 
 # ------------------------------------------------------------------------
 # Build and package exporter
@@ -78,6 +88,7 @@ $(DIST_EXPORTER).%.tar.gz: $(DIST_EXPORTER).%/$(EXPORTER) $(PACKAGE_FILES)
 	@echo "Packaging $(notdir $@)"
 	@cp -f $(PACKAGE_FILES)  $(DIST_EXPORTER).$*/
 	@cd $(dir $<) ; tar czf $(abspath $@) .
+	@rm -rf $(DIST_EXPORTER).$*/
 
 # Gnerating exporter for archi
 $(DIST_EXPORTER).%/$(EXPORTER): $(DIST_EXPORTER)/

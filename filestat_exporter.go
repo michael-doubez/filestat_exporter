@@ -31,9 +31,9 @@ func main() {
 	commandLine := flag.NewFlagSet("filestat_exporter", flag.ExitOnError)
 	var (
 		listenAddress = commandLine.String("web.listen-address", ":9943", "The address to listen on for HTTP requests.")
-		logLevel      = commandLine.String("log.level", "info", "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal]")
-		metricsPath   = commandLine.String("web.telemetry-path", "/metrics", "The address to listen on for exporter HTTP requests.")
-		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit")
+		logLevel      = commandLine.String("log.level", "info", "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal].")
+		metricsPath   = commandLine.String("web.telemetry-path", "/metrics", "The path under which to expose metrics.")
+		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
 	)
 	commandLine.Parse(os.Args[1:])
 
@@ -50,7 +50,7 @@ func main() {
 	log.Base().SetLevel(*logLevel)
 
 	// args are glob pattern for files to watch
-	collector := &FileStatusCollector{
+	collector := &fileStatusCollector{
 		filesPatterns: commandLine.Args(),
 	}
 	if err := prometheus.Register(collector); err != nil {
