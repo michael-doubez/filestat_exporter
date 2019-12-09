@@ -37,7 +37,7 @@ SRCS = $(wildcard *.go)
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
 # - version: display version number
 # - run: launch exporter on sample config
-.PHONY: all build clean check dist fmt vet lint run
+.PHONY: all build clean check dist fmt vet lint run dist dist-%
 
 all:: vet fmt build
 
@@ -70,7 +70,8 @@ version:
 
 DIST_EXPORTER=$(DIST_DIR)/$(EXPORTER)-$(VERSION)
 dist: $(foreach ARCH, $(DIST_ARCHITECTURES), $(DIST_EXPORTER).$(ARCH).tar.gz)
-dist-%: $(DIST_EXPORTER).$*.tar.gz
+dist-%: $(DIST_EXPORTER).%.tar.gz
+	@echo "Done generating $(notdir $<)"
 
 # ------------------------------------------------------------------------
 # Build and package exporter
@@ -87,6 +88,7 @@ $(DIST_EXPORTER).%.tar.gz: $(DIST_EXPORTER).%/$(EXPORTER) $(PACKAGE_FILES)
 	@echo "Packaging $(notdir $@)"
 	@cp -f $(PACKAGE_FILES)  $(DIST_EXPORTER).$*/
 	@cd $(dir $<) ; tar czf $(abspath $@) .
+	@rm -rf $(DIST_EXPORTER).$*/
 
 # Gnerating exporter for archi
 $(DIST_EXPORTER).%/$(EXPORTER): $(DIST_EXPORTER)/
