@@ -62,8 +62,9 @@ else
 	@$(GOLINT) ./...
 endif
 
+RUN_OPTIONS=-log.level=debug -metric.crc32
 run:
-	@$(GO) run $(SRCS) --log.level=debug '*.*'
+	@$(GO) run $(SRCS) $(RUN_OPTIONS) '*.*'
 
 version:
 	@echo $(VERSION)
