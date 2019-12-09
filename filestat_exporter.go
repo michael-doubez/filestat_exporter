@@ -34,6 +34,7 @@ func main() {
 		logLevel      = commandLine.String("log.level", "info", "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal].")
 		metricsPath   = commandLine.String("web.telemetry-path", "/metrics", "The path under which to expose metrics.")
 		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
+		crc32Metric   = commandLine.Bool("metric.crc32", false, "Generate CRC32 hash metric of files.")
 	)
 	commandLine.Parse(os.Args[1:])
 
@@ -51,7 +52,8 @@ func main() {
 
 	// args are glob pattern for files to watch
 	collector := &fileStatusCollector{
-		filesPatterns: commandLine.Args(),
+		filesPatterns:     commandLine.Args(),
+		enableCRC32Metric: *crc32Metric,
 	}
 	if err := prometheus.Register(collector); err != nil {
 		log.Errorln("Could not register collector", err)
