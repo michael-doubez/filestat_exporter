@@ -4,6 +4,7 @@ VERSION    ?= 0.0.1
 
 # Go projet
 GO = go
+GOLINT = $(shell $(GO) list -f {{.Target}} golang.org/x/lint/golint)
 
 # Inject version information
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
@@ -36,7 +37,7 @@ SRCS = $(wildcard *.go)
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
 # - version: display version number
 # - run: launch exporter on sample config
-.PHONY: all build clean check dist fmt vet run
+.PHONY: all build clean check dist fmt vet lint run
 
 all:: vet fmt build
 
@@ -45,13 +46,21 @@ build: $(EXPORTER)
 clean:
 	@rm -f $(EXPORTER)
 
-check: fmt vet
+check: fmt vet lint
 
 fmt:
 	@$(GO) fmt ./...
 
 vet:
 	@$(GO) vet ./...
+
+lint:
+ifeq ($(GOLINT),)
+	@echo >&2 "Warning: golint not installed - lint skipped"
+	@echo >&2 "         run 'go get -u golang.org/x/lint/golint' to install"
+else
+	@$(GOLINT) ./...
+endif
 
 run:
 	@$(GO) run $(SRCS) --log.level=debug '*.*'

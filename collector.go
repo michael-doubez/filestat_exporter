@@ -38,17 +38,17 @@ var (
 )
 
 // Collector compute metrics for each file matching the patterns
-type FileStatusCollector struct {
+type fileStatusCollector struct {
 	filesPatterns []string
 }
 
 // Describe implements the prometheus.Collector interface.
-func (c FileStatusCollector) Describe(ch chan<- *prometheus.Desc) {
+func (c *fileStatusCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- fileSizeBytesDesc
 }
 
 // Collect implements the prometheus.Collector interface.
-func (c FileStatusCollector) Collect(ch chan<- prometheus.Metric) {
+func (c *fileStatusCollector) Collect(ch chan<- prometheus.Metric) {
 	set := make(map[string]struct{})
 	for _, pattern := range c.filesPatterns {
 		if matches, err := filepath.Glob(pattern); err == nil {

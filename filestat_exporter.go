@@ -50,7 +50,7 @@ func main() {
 	log.Base().SetLevel(*logLevel)
 
 	// args are glob pattern for files to watch
-	collector := &FileStatusCollector{
+	collector := &fileStatusCollector{
 		filesPatterns: commandLine.Args(),
 	}
 	if err := prometheus.Register(collector); err != nil {
