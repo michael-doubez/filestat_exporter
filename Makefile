@@ -54,6 +54,7 @@ fmt:
 vet:
 	@$(GO) vet ./...
 
+$(info GOLINT="$(GOLINT)")
 lint:
 ifeq ($(GOLINT),)
 	@echo >&2 "Warning: golint not installed - lint skipped"
