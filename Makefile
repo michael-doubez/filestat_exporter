@@ -4,7 +4,7 @@ VERSION    ?= 0.0.1
 
 # Go projet
 GO = go
-GOLINT = $(shell $(GO) list -f {{.Target}} golang.org/x/lint/golint)
+GOLINT = $(shell $(GO) list -f {{.Target}} golang.org/x/lint/golint 2>/dev/null || true)
 
 # Inject version information
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
