@@ -2,6 +2,9 @@ GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
 VERSION    ?= v0.1.0
 
+# destination for binary build
+BUILD_DIR ?= .
+
 # Go projet
 GO = go
 GOLINT = $(shell $(GO) list -f {{.Target}} golang.org/x/lint/golint 2>/dev/null || true)
@@ -41,10 +44,10 @@ SRCS = $(wildcard *.go)
 
 all:: vet fmt build
 
-build: $(EXPORTER)
+build: $(BUILD_DIR)/$(EXPORTER)
 
 clean:
-	@rm -f $(EXPORTER)
+	@rm -f $(BUILD_DIR)/$(EXPORTER)
 
 check: fmt vet lint
 
@@ -81,8 +84,8 @@ dist-%: $(DIST_EXPORTER).%.tar.gz
 PACKAGE_FILES = LICENSE NOTICE
 
 # Simple build for current os/architecture
-$(EXPORTER): $(SRCS)
-	@$(GO) build -ldflags "$(LDFLAGS)" $(SRC)
+$(BUILD_DIR)/$(EXPORTER): $(SRCS)
+	@$(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRC)
 
 # Ensure dist path exists
 $(DIST_EXPORTER)/:
