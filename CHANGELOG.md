@@ -1,5 +1,6 @@
 ## master / unreleased
 
+* [ENHANCEMENT] add metric counting the number of files matching glob pattern
 * [ENHANCEMENT] add metric describing crc32 hash of file
 * [BREAKING] change package content to reflect os/archi
 

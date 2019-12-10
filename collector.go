@@ -27,18 +27,23 @@ import (
 const namespace = "file"
 
 var (
+	fileMatchingGlobNbDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "glob", "match_number"),
+		"Number of files matching pattern",
+		[]string{"pattern"}, nil,
+	)
 	fileSizeBytesDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "stat", "size_bytes"),
 		"Size of file in bytes",
 		[]string{"path"}, nil,
 	)
-	fileModificationTimeSecondsDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "stat", "modification_time_seconds"),
+	fileModifTimeSecondsDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "stat", "modif_time_seconds"),
 		"Last modification time of file in epoch time",
 		[]string{"path"}, nil,
 	)
 	fileCRC32HashDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "hash", "crc32_ieee"),
+		prometheus.BuildFQName(namespace, "hash", "content_crc32"),
 		"CRC32 hash of file content using the IEEE polynomial",
 		[]string{"path"}, nil,
 	)
@@ -52,8 +57,9 @@ type fileStatusCollector struct {
 
 // Describe implements the prometheus.Collector interface.
 func (c *fileStatusCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- fileMatchingGlobNbDesc
 	ch <- fileSizeBytesDesc
-	ch <- fileModificationTimeSecondsDesc
+	ch <- fileModifTimeSecondsDesc
 	if c.enableCRC32Metric {
 		ch <- fileCRC32HashDesc
 	}
@@ -63,12 +69,13 @@ func (c *fileStatusCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *fileStatusCollector) Collect(ch chan<- prometheus.Metric) {
 	set := make(map[string]struct{})
 	for _, pattern := range c.filesPatterns {
+		matchingFileNb := 0
 		if matches, err := filepath.Glob(pattern); err == nil {
 			for _, filePath := range matches {
 				log.Debugln("Collecting file ", filePath)
 				if _, ok := set[filePath]; !ok {
 					set[filePath] = struct{}{}
-					collectFileMetrics(ch, filePath)
+					collectFileMetrics(ch, filePath, &matchingFileNb)
 					if c.enableCRC32Metric {
 						collectCRC32Metric(ch, filePath)
 					}
@@ -77,21 +84,25 @@ func (c *fileStatusCollector) Collect(ch chan<- prometheus.Metric) {
 		} else {
 			log.Debugln("Error getting matches for glob", pattern, "-", err)
 		}
+		ch <- prometheus.MustNewConstMetric(fileMatchingGlobNbDesc, prometheus.GaugeValue,
+			float64(matchingFileNb),
+			pattern)
 	}
 }
 
 // Collect metrics for a file and feed
-func collectFileMetrics(ch chan<- prometheus.Metric, filePath string) {
+func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *int) {
 	// Metrics based on Fileinfo
 	if fileinfo, err := os.Stat(filePath); err == nil {
 		if fileinfo.IsDir() {
 			return
 		}
+		*nbFile++
 		ch <- prometheus.MustNewConstMetric(fileSizeBytesDesc, prometheus.GaugeValue,
 			float64(fileinfo.Size()),
 			filePath)
 		modTime := fileinfo.ModTime()
-		ch <- prometheus.MustNewConstMetric(fileModificationTimeSecondsDesc, prometheus.GaugeValue,
+		ch <- prometheus.MustNewConstMetric(fileModifTimeSecondsDesc, prometheus.GaugeValue,
 			float64(modTime.Unix())+float64(modTime.Nanosecond())/1000000000.0,
 			filePath)
 	} else {
