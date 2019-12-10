@@ -2,8 +2,11 @@ GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
 VERSION    ?= v0.1.0
 
-# destination for binary build
+# Binary build parameters
+#   - target build directory
 BUILD_DIR ?= .
+#   - build in release mode
+RELEASE_MODE ?= 0
 
 # Go projet
 GO = go
@@ -14,11 +17,11 @@ BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
 REVISION ?= $(shell git rev-parse --short HEAD)
 BUILDUSER ?= $(USER)
 BUILDDATE ?= $(shell date +%FT%T%z)
-LDFLAGS = -s -X github.com/prometheus/common/version.Version=$(VERSION) \
-             -X github.com/prometheus/common/version.Branch=$(BRANCH) \
-             -X github.com/prometheus/common/version.Revision=$(REVISION) \
-             -X github.com/prometheus/common/version.BuildUser=$(BUILDUSER) \
-             -X github.com/prometheus/common/version.BuildDate=$(BUILDDATE)
+LDFLAGS = -X github.com/prometheus/common/version.Version=$(VERSION) \
+          -X github.com/prometheus/common/version.Branch=$(BRANCH) \
+          -X github.com/prometheus/common/version.Revision=$(REVISION) \
+          -X github.com/prometheus/common/version.BuildUser=$(BUILDUSER) \
+          -X github.com/prometheus/common/version.BuildDate=$(BUILDDATE)
 
 # Distribution
 DIST_DIR?=./dist
@@ -83,9 +86,17 @@ dist-%: $(DIST_EXPORTER).%.tar.gz
 # List of files to include in packages
 PACKAGE_FILES = LICENSE NOTICE
 
+# In release mode
+#   - build without debug symbol
+ifneq ($(RELEASE_MODE),0)
+  LDFLAGS += -s
+  LDFLAGS += -w
+  BUILD_FLAGS += -trimpath
+endif
+
 # Simple build for current os/architecture
 $(BUILD_DIR)/$(EXPORTER): $(SRCS)
-	@$(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRC)
+	@$(GO) build -ldflags "$(LDFLAGS)" -o $@ $(BUILD_FLAGS) $(SRCS)
 
 # Ensure dist path exists
 $(DIST_EXPORTER)/:

@@ -22,7 +22,7 @@ jobs:
     executor: golang
     steps:
       - checkout
-      - run: make dist
+      - run: make dist RELEASE_MODE=1
       - run: make version > dist/VERSION
       - persist_to_workspace:
           root: ./dist
