@@ -16,14 +16,17 @@ Optional flags:
 * __`-version`:__ Print the version of the exporter and exit.
 * __`-web.listen-address`:__ Address to listen on for web interface and telemetry. (default: `9943`)
 * __`-web.telemetry-path <URL ptath>`:__ Path under which to expose metrics. (default: `/metrics`)
+* __`-metric.crc32`:__ Generate CRC32 hash metric of files.
 
 
 ## Exported Metrics
 
-| Metric                    | Description                                  | Labels |
-| ------------------------- | -------------------------------------------- | ------ |
-| file_stat_size_bytes      | Size of file in bytes                        | path   |
-| modification_time_seconds | Last modification time of file in epoch time | path   |
+| Metric                       | Description                                  | Labels   |
+| ---------------------------- | -------------------------------------------- | -------- |
+| file_glob_match_number       | Number of files matching pattern             | pattern  |
+| file_stat_size_bytes         | Size of file in bytes                        | path     |
+| file_stat_modif_time_seconds | Last modification time of file in epoch time | path     |
+| file_hash_content_crc32      | "CRC31 hash of file content                  | path     |
 
 ## Building and running
 
