@@ -44,7 +44,7 @@ func main() {
 	}
 
 	if commandLine.NArg() == 0 {
-		fmt.Fprintf(os.Stderr, "filestat_exporter requires at least one argument file to watch")
+		fmt.Fprintf(os.Stderr, "filestat_exporter requires at least one argument file to match\n")
 		os.Exit(1)
 	}
 
