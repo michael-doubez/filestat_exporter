@@ -1,4 +1,4 @@
-## master / unreleased
+## 0.1.0 / 2019-12-10
 
 * [ENHANCEMENT] add metric counting the number of files matching glob pattern
 * [ENHANCEMENT] add metric describing crc32 hash of file
