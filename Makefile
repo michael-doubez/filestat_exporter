@@ -1,6 +1,6 @@
 GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
-VERSION    ?= 0.0.1
+VERSION    ?= v0.1.0
 
 # Go projet
 GO = go
