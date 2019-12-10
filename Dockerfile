@@ -2,11 +2,9 @@ FROM golang:1.13-alpine AS build
 RUN ls -R
 RUN mkdir /exporter/
 WORKDIR /exporter
-COPY Makefile *.go go.mod go.sum /exporter/
-RUN ls -R
+COPY .git Makefile *.go go.mod go.sum /exporter/
 RUN apk add git
-RUN apk add make
-RUN apk add gcc
+RUN apk add build-base
 RUN make build RELEASE_MODE=1
 
 FROM alpine

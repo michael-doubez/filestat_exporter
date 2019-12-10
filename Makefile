@@ -3,8 +3,6 @@ GITHUB_REPO = filestat_exporter
 VERSION    ?= v0.1.0
 
 # Binary build parameters
-#   - target build directory
-BUILD_DIR ?= .
 #   - build in release mode
 RELEASE_MODE ?= 0
 
@@ -47,10 +45,10 @@ SRCS = $(wildcard *.go)
 
 all:: vet fmt build
 
-build: $(BUILD_DIR)/$(EXPORTER)
+build: $(EXPORTER)
 
 clean:
-	@rm -f $(BUILD_DIR)/$(EXPORTER)
+	@rm -f $(EXPORTER)
 
 check: fmt vet lint
 
@@ -95,7 +93,7 @@ ifneq ($(RELEASE_MODE),0)
 endif
 
 # Simple build for current os/architecture
-$(BUILD_DIR)/$(EXPORTER): $(SRCS)
+$(EXPORTER): $(SRCS)
 	@$(GO) build -ldflags "$(LDFLAGS)" -o $@ $(BUILD_FLAGS) $(SRCS)
 
 # Ensure dist path exists
