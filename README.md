@@ -1,6 +1,7 @@
 # File statistics exporter
 
 [![CircleCI](https://circleci.com/gh/michael-doubez/filestat_exporter/tree/master.svg?style=shield)][circleci]
+[![Docker Pulls](https://img.shields.io/docker/pulls/mdoubez/filestat_exporter.svg?maxAge=604800)][dockerhub]
 [![Go Report Card](https://goreportcard.com/badge/github.com/michael-doubez/filestat_exporter)][goreportcard]
 
 Prometheus exporter gathering metrics about file size, modification and other statistics.
@@ -62,5 +63,20 @@ To build a specific os/architecture package
     make dist-linux-amd64
     ...
 
+## Using Docker
+The `filestat_exporter` is designed to monitor files on the host system.
+
+Try it out in minutes on [Katakoda docker playground][dockerplay]:
+```bash
+# create locale files
+docker container run --rm -d -v ~/my_files:/my_files --name my_files bash -c 'echo "Hello world" > /my_files/sample.txt'
+# launch exporter watching the files
+docker run -d -p 9943:9943 --name=filestats -v ~/my_files:/data mdoubez/filestat_exporter '/data/*'
+# see file metrics
+curl -s docker:9943/metrics | grep file_
+```
+
 [circleci]: https://circleci.com/gh/michael-doubez/filestat_exporter
+[dockerhub]: https://hub.docker.com/r/mdoubez/filestat_exporter/
 [goreportcard]: https://goreportcard.com/report/github.com/michael-doubez/filestat_exporter
+[dockerplay]: https://www.katacoda.com/courses/docker/playground
