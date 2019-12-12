@@ -71,7 +71,7 @@ Try it out in minutes on [Katakoda docker playground][dockerplay]:
 # create locale files
 docker container run --rm -d -v ~/my_files:/my_files --name my_files bash -c 'echo "Hello world" > /my_files/sample.txt'
 # launch exporter watching the files
-docker run -d -p 9943:9943 --name=filestats -v ~/my_files:/data mdoubez/filestat_exporter '/data/*'
+docker run -d -p 9943:9943 --name=filestats -v ~/my_files:/data mdoubez/filestat_exporter -path.cwd /data '*'
 # see file metrics
 curl -s docker:9943/metrics | grep file_
 ```
@@ -80,3 +80,4 @@ curl -s docker:9943/metrics | grep file_
 [dockerhub]: https://hub.docker.com/r/mdoubez/filestat_exporter/
 [goreportcard]: https://goreportcard.com/report/github.com/michael-doubez/filestat_exporter
 [dockerplay]: https://www.katacoda.com/courses/docker/playground
+

@@ -30,11 +30,12 @@ import (
 func main() {
 	commandLine := flag.NewFlagSet("filestat_exporter", flag.ExitOnError)
 	var (
-		listenAddress = commandLine.String("web.listen-address", ":9943", "The address to listen on for HTTP requests.")
 		logLevel      = commandLine.String("log.level", "info", "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal].")
-		metricsPath   = commandLine.String("web.telemetry-path", "/metrics", "The path under which to expose metrics.")
-		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
 		crc32Metric   = commandLine.Bool("metric.crc32", false, "Generate CRC32 hash metric of files.")
+		workingDir    = commandLine.String("path.cwd", ".", "Working directory of path pattern collection")
+		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
+		listenAddress = commandLine.String("web.listen-address", ":9943", "The address to listen on for HTTP requests.")
+		metricsPath   = commandLine.String("web.telemetry-path", "/metrics", "The path under which to expose metrics.")
 	)
 	commandLine.Parse(os.Args[1:])
 
@@ -51,6 +52,12 @@ func main() {
 	log.Base().SetLevel(*logLevel)
 
 	// args are glob pattern for files to watch
+	if *workingDir != "." {
+		if err := os.Chdir(*workingDir); err != nil {
+			log.Errorln("Could not change to directory", *workingDir, "-", err)
+			os.Exit(1)
+		}
+	}
 	collector := &fileStatusCollector{
 		filesPatterns:     commandLine.Args(),
 		enableCRC32Metric: *crc32Metric,
