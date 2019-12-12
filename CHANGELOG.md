@@ -4,6 +4,7 @@
 
 ### Changes
 
+* [ENHANCEMENT] add parameter to change working directory of glob pattern
 * [BREAKING] rename metric `file_hash_content_crc32` to `file_content_hash_crc32`
 * [DOCKER] add docker file to generate image
 
