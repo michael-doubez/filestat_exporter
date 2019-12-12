@@ -27,7 +27,7 @@ Optional flags:
 | file_glob_match_number       | Number of files matching pattern             | pattern  |
 | file_stat_size_bytes         | Size of file in bytes                        | path     |
 | file_stat_modif_time_seconds | Last modification time of file in epoch time | path     |
-| file_hash_content_crc32      | CRC32 hash of file content                   | path     |
+| file_content_hash_crc32      | CRC32 hash of file content                   | path     |
 
 ## Building and running
 
