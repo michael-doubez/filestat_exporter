@@ -43,7 +43,7 @@ var (
 		[]string{"path"}, nil,
 	)
 	fileCRC32HashDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "hash", "content_crc32"),
+		prometheus.BuildFQName(namespace, "content", "hash_crc32"),
 		"CRC32 hash of file content using the IEEE polynomial",
 		[]string{"path"}, nil,
 	)
