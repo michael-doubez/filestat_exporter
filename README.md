@@ -2,6 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/michael-doubez/filestat_exporter/tree/master.svg?style=shield)][circleci]
 [![Docker Pulls](https://img.shields.io/docker/pulls/mdoubez/filestat_exporter.svg?maxAge=604800)][dockerhub]
+[![GitHub All Releases](https://img.shields.io/github/downloads/michael-doubez/filestat_exporter/total)][releases]
 [![Go Report Card](https://goreportcard.com/badge/github.com/michael-doubez/filestat_exporter)][goreportcard]
 
 Prometheus exporter gathering metrics about file size, modification and other statistics.
@@ -13,12 +14,12 @@ Configure target files on command line, passing glob patterns in parameters
     ./filestat_exporter './*.*'
 
 Optional flags:
-* __`-log.level`:__ Logging level \[debug, info, warn, error, fatal\]. (default: `info`)
+* __`-log.level <level>`:__ Logging level \[debug, info, warn, error, fatal\]. (default: `info`)
 * __`-version`:__ Print the version of the exporter and exit.
-* __`-web.listen-address`:__ Address to listen on for web interface and telemetry. (default: `9943`)
-* __`-web.telemetry-path <URL ptath>`:__ Path under which to expose metrics. (default: `/metrics`)
+* __`-web.listen-address <port>`:__ Address to listen on for web interface and telemetry. (default: `9943`)
+* __`-web.telemetry-path <URL path>`:__ Path under which to expose metrics. (default: `/metrics`)
 * __`-metric.crc32`:__ Generate CRC32 hash metric of files.
-
+* __`-path.cwd <path>`:__ Change working directory of path pattern collection.
 
 ## Exported Metrics
 
@@ -28,6 +29,7 @@ Optional flags:
 | file_stat_size_bytes         | Size of file in bytes                        | path     |
 | file_stat_modif_time_seconds | Last modification time of file in epoch time | path     |
 | file_content_hash_crc32      | CRC32 hash of file content                   | path     |
+| file_content_line_number     | Number of lines in file                      | path     |
 
 ## Building and running
 
@@ -35,6 +37,7 @@ Prerequisites:
 
 * [Go compiler](https://golang.org/dl/) - currently version v1.13
 * Linux with make installed
+* Essential build environment for dependencies
 
 ### Building
 
@@ -68,7 +71,7 @@ The `filestat_exporter` is designed to monitor files on the host system.
 
 Try it out in minutes on [Katakoda docker playground][dockerplay]:
 ```bash
-# create locale files
+# create local file
 docker container run --rm -d -v ~/my_files:/my_files --name my_files bash -c 'echo "Hello world" > /my_files/sample.txt'
 # launch exporter watching the files
 docker run -d -p 9943:9943 --name=filestats -v ~/my_files:/data mdoubez/filestat_exporter -path.cwd /data '*'
@@ -80,4 +83,5 @@ curl -s docker:9943/metrics | grep file_
 [dockerhub]: https://hub.docker.com/r/mdoubez/filestat_exporter/
 [goreportcard]: https://goreportcard.com/report/github.com/michael-doubez/filestat_exporter
 [dockerplay]: https://www.katacoda.com/courses/docker/playground
+[releases]: https://github.com/michael-doubez/filestat_exporter/releases
 

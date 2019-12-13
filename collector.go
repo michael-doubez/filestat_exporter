@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bytes"
 	"hash/crc32"
 	"io"
 	"os"
@@ -47,12 +48,18 @@ var (
 		"CRC32 hash of file content using the IEEE polynomial",
 		[]string{"path"}, nil,
 	)
+	lineNbMetricDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, "content", "line_number"),
+		"Number of lines in file",
+		[]string{"path"}, nil,
+	)
 )
 
 // Collector compute metrics for each file matching the patterns
 type fileStatusCollector struct {
-	filesPatterns     []string
-	enableCRC32Metric bool
+	filesPatterns      []string
+	enableCRC32Metric  bool
+	enableLineNbMetric bool
 }
 
 // Describe implements the prometheus.Collector interface.
@@ -62,6 +69,9 @@ func (c *fileStatusCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- fileModifTimeSecondsDesc
 	if c.enableCRC32Metric {
 		ch <- fileCRC32HashDesc
+	}
+	if c.enableLineNbMetric {
+		ch <- lineNbMetricDesc
 	}
 }
 
@@ -76,8 +86,10 @@ func (c *fileStatusCollector) Collect(ch chan<- prometheus.Metric) {
 				if _, ok := set[filePath]; !ok {
 					set[filePath] = struct{}{}
 					collectFileMetrics(ch, filePath, &matchingFileNb)
-					if c.enableCRC32Metric {
-						collectCRC32Metric(ch, filePath)
+					if c.enableCRC32Metric || c.enableLineNbMetric {
+						collectContentMetrics(ch, filePath,
+							c.enableCRC32Metric,
+							c.enableLineNbMetric)
 					}
 				}
 			}
@@ -111,22 +123,55 @@ func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *in
 	}
 }
 
-// Collect metrics for a file and feed
-func collectCRC32Metric(ch chan<- prometheus.Metric, filePath string) {
+// Collect metrics for a file content
+func collectContentMetrics(ch chan<- prometheus.Metric, filePath string,
+	enableCRC32 bool, enableLineNb bool) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Debugln("Error getting CRC32 file hash when opening", filePath, "-", err)
+		log.Debugln("Error getting content file hash when opening", filePath, "-", err)
 		return
 	}
 	defer file.Close()
 
 	hash := crc32.NewIEEE()
-	if _, err := io.Copy(hash, file); err != nil {
-		log.Debugln("Error generating CRC32 hash of file", filePath, "-", err)
-		return
+	lineNb := 0
+
+	// read chunks of 32k
+	buf := make([]byte, 32*1024)
+	lineSep := []byte{'\n'}
+
+ReadFile:
+	for {
+		c, err := file.Read(buf)
+		slice := buf[:c]
+		if enableLineNb {
+			lineNb += bytes.Count(slice, lineSep)
+		}
+		if enableCRC32 {
+			if _, errHash := hash.Write(slice); errHash != nil {
+				log.Debugln("Error generating CRC32 hash of file", filePath, "-", errHash)
+				enableCRC32 = false
+			}
+		}
+
+		switch {
+		case err == io.EOF:
+			break ReadFile
+
+		case err != nil:
+			log.Debugln("Error reading content of file", filePath, "-", err)
+			return
+		}
 	}
 
-	ch <- prometheus.MustNewConstMetric(fileCRC32HashDesc, prometheus.GaugeValue,
-		float64(hash.Sum32()),
-		filePath)
+	if enableCRC32 {
+		ch <- prometheus.MustNewConstMetric(fileCRC32HashDesc, prometheus.GaugeValue,
+			float64(hash.Sum32()),
+			filePath)
+	}
+	if enableLineNb {
+		ch <- prometheus.MustNewConstMetric(lineNbMetricDesc, prometheus.GaugeValue,
+			float64(lineNb),
+			filePath)
+	}
 }

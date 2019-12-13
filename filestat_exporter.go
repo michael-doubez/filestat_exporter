@@ -32,6 +32,7 @@ func main() {
 	var (
 		logLevel      = commandLine.String("log.level", "info", "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal].")
 		crc32Metric   = commandLine.Bool("metric.crc32", false, "Generate CRC32 hash metric of files.")
+		lineNbMetric  = commandLine.Bool("metric.nb_lines", false, "Generate line number metric of files.")
 		workingDir    = commandLine.String("path.cwd", ".", "Working directory of path pattern collection")
 		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
 		listenAddress = commandLine.String("web.listen-address", ":9943", "The address to listen on for HTTP requests.")
@@ -59,8 +60,9 @@ func main() {
 		}
 	}
 	collector := &fileStatusCollector{
-		filesPatterns:     commandLine.Args(),
-		enableCRC32Metric: *crc32Metric,
+		filesPatterns:      commandLine.Args(),
+		enableCRC32Metric:  *crc32Metric,
+		enableLineNbMetric: *lineNbMetric,
 	}
 	if err := prometheus.Register(collector); err != nil {
 		log.Errorln("Could not register collector", err)
