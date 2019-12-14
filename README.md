@@ -18,8 +18,9 @@ Optional flags:
 * __`-version`:__ Print the version of the exporter and exit.
 * __`-web.listen-address <port>`:__ Address to listen on for web interface and telemetry. (default: `9943`)
 * __`-web.telemetry-path <URL path>`:__ Path under which to expose metrics. (default: `/metrics`)
-* __`-metric.crc32`:__ Generate CRC32 hash metric of files.
 * __`-path.cwd <path>`:__ Change working directory of path pattern collection.
+* __`-metric.crc32`:__ Generate CRC32 hash metric of files.
+* __`-metric.nb_lines`:__ Generate line number metric of files.
 
 ## Exported Metrics
 
@@ -28,8 +29,10 @@ Optional flags:
 | file_glob_match_number       | Number of files matching pattern             | pattern  |
 | file_stat_size_bytes         | Size of file in bytes                        | path     |
 | file_stat_modif_time_seconds | Last modification time of file in epoch time | path     |
-| file_content_hash_crc32      | CRC32 hash of file content                   | path     |
-| file_content_line_number     | Number of lines in file                      | path     |
+| file_content_hash_crc32  (*) | CRC32 hash of file content                   | path     |
+| file_content_line_number (*) | Number of lines in file                      | path     |
+
+Note: metrics with `(*)` are only provided it configured
 
 ## Building and running
 
