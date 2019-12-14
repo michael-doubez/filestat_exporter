@@ -32,7 +32,7 @@ Optional flags:
 | file_content_hash_crc32  (*) | CRC32 hash of file content                   | path     |
 | file_content_line_number (*) | Number of lines in file                      | path     |
 
-Note: metrics with `(*)` are only provided it configured
+Note: metrics with `(*)` are only provided if configured
 
 
 ## Building and running

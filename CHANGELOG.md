@@ -1,4 +1,4 @@
-## 0.2.0 / 2019-12-15
+## v0.2.0 / 2019-12-15
 
 ### Changes
 
@@ -8,9 +8,7 @@
 * [DOCKER] add docker file to generate image
 
 
-## 0.1.0 / 2019-12-10
-
-## master / unreleased
+## v0.1.0 / 2019-12-10
 
 ### Changes
 
@@ -25,7 +23,7 @@
 * [BREAKING] change package content to reflect os/archi
 
 
-## 0.0.1 / 2019-12-08
+## v0.0.1 / 2019-12-08
 
 ### Changes
 
