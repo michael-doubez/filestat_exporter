@@ -1,5 +1,4 @@
 FROM golang:1.13-alpine AS build
-RUN ls -R
 RUN mkdir /exporter/
 WORKDIR /exporter
 COPY .git Makefile *.go go.mod go.sum /exporter/
