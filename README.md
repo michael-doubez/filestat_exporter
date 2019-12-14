@@ -34,6 +34,7 @@ Optional flags:
 
 Note: metrics with `(*)` are only provided it configured
 
+
 ## Building and running
 
 Prerequisites:
@@ -74,6 +75,7 @@ The `filestat_exporter` is designed to monitor files on the host system.
 
 Try it out in minutes on [Katakoda docker playground][dockerplay]:
 ```bash
+
 # create local file
 docker container run --rm -d -v ~/my_files:/my_files --name my_files bash -c 'echo "Hello world" > /my_files/sample.txt'
 # launch exporter watching the files
@@ -87,4 +89,3 @@ curl -s docker:9943/metrics | grep file_
 [goreportcard]: https://goreportcard.com/report/github.com/michael-doubez/filestat_exporter
 [dockerplay]: https://www.katacoda.com/courses/docker/playground
 [releases]: https://github.com/michael-doubez/filestat_exporter/releases
-
