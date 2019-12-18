@@ -14,6 +14,7 @@ Configure target files on command line, passing glob patterns in parameters
     ./filestat_exporter './*.*'
 
 Optional flags:
+* __`-config.file <yaml>`:__ The path to the configuration file (use "none" to disable).
 * __`-log.level <level>`:__ Logging level \[debug, info, warn, error, fatal\]. (default: `info`)
 * __`-version`:__ Print the version of the exporter and exit.
 * __`-web.listen-address <port>`:__ Address to listen on for web interface and telemetry. (default: `9943`)

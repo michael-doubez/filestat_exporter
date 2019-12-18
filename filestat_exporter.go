@@ -30,6 +30,7 @@ import (
 func main() {
 	commandLine := flag.NewFlagSet("filestat_exporter", flag.ExitOnError)
 	var (
+		cfgFile       = commandLine.String("config.file", "filestat.yaml", "The path to the configuration file (use \"none\" to disable).")
 		logLevel      = commandLine.String("log.level", "info", "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal].")
 		crc32Metric   = commandLine.Bool("metric.crc32", false, "Generate CRC32 hash metric of files.")
 		lineNbMetric  = commandLine.Bool("metric.nb_lines", false, "Generate line number metric of files.")
@@ -45,29 +46,48 @@ func main() {
 		os.Exit(0)
 	}
 
-	if commandLine.NArg() == 0 {
-		fmt.Fprintf(os.Stderr, "filestat_exporter requires at least one argument file to match\n")
-		os.Exit(1)
+	// configuration
+	defaultCollector := &collectorConfig{
+		collectorMetricConfig: collectorMetricConfig{
+			EnableCRC32Metric:  crc32Metric,
+			EnableNbLineMetric: lineNbMetric,
+		},
+		GlobPatternPath: commandLine.Args(),
 	}
 
 	log.Base().SetLevel(*logLevel)
 
-	// args are glob pattern for files to watch
+	config, err := readConfig(*cfgFile, defaultCollector)
+	if config == nil {
+		log.Fatalln("Error reading config file", *cfgFile, "-", err)
+		os.Exit(1)
+	}
+
+	if len(config.Exporter.Files) == 0 {
+		log.Fatalln("filestat_exporter requires a config file with patterns or at least one argument file to match")
+		os.Exit(1)
+	}
+
+	// adjust working directory globally
 	if *workingDir != "." {
-		if err := os.Chdir(*workingDir); err != nil {
-			log.Errorln("Could not change to directory", *workingDir, "-", err)
+		if len(config.Exporter.WorkingDirectory) == 0 {
+			log.Infoln("Config from parameter: working_directory =", *workingDir)
+		}
+		config.Exporter.WorkingDirectory = *workingDir
+	}
+	if len(config.Exporter.WorkingDirectory) != 0 {
+		if err := os.Chdir(config.Exporter.WorkingDirectory); err != nil {
+			log.Errorln("Could not change to directory", config.Exporter.WorkingDirectory, "-", err)
 			os.Exit(1)
 		}
 	}
-	collector := &fileStatusCollector{
-		filesPatterns:      commandLine.Args(),
-		enableCRC32Metric:  *crc32Metric,
-		enableLineNbMetric: *lineNbMetric,
-	}
+
+	// create collector
+	collector := config.generateCollector()
 	if err := prometheus.Register(collector); err != nil {
 		log.Errorln("Could not register collector", err)
 	} else {
-		log.Infoln("Collector ready to collect", collector.filesPatterns)
+		log.Infoln("Collector ready to collect files")
 	}
 
 	// setting up exporter
