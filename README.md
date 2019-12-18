@@ -114,7 +114,7 @@ curl -s docker:9943/metrics | grep file_
 
 ## License
 
-Apache License 2.0, see [LICENSE](https://github.com/prometheus/prometheus/blob/master/LICENSE).
+Apache License 2.0, see [LICENSE](https://github.com/michael-doubez/filestat_exporter/blob/master/LICENSE).
 
 
 [circleci]: https://circleci.com/gh/michael-doubez/filestat_exporter
