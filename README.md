@@ -5,13 +5,17 @@
 [![GitHub All Releases](https://img.shields.io/github/downloads/michael-doubez/filestat_exporter/total)][releases]
 [![Go Report Card](https://goreportcard.com/badge/github.com/michael-doubez/filestat_exporter)][goreportcard]
 
-Prometheus exporter gathering metrics about file size, modification and other statistics.
+Prometheus exporter gathering metrics about file size, modification time and other statistics.
 
-## Usage
+## Quickstart
+
+Pre-built binaries are available on the [GitHub release page][releases].
+
+### Usage
 
 Configure target files on command line, passing glob patterns in parameters
 
-    ./filestat_exporter './*.*'
+    ./filestat_exporter '*'
 
 Optional flags:
 * __`-config.file <yaml>`:__ The path to the configuration file (use "none" to disable).
@@ -23,7 +27,23 @@ Optional flags:
 * __`-metric.crc32`:__ Generate CRC32 hash metric of files.
 * __`-metric.nb_lines`:__ Generate line number metric of files.
 
-## Exported Metrics
+The exporter can read a config file in yaml format (`filestat.yaml` by default).
+
+```yaml
+exporter:
+  # Optional working directory - overidden by parameter '-path.cwd'
+  working_directory: "/path/to/my/project"
+  # Default enable/disable of metrics - overidden by parameter '-metric.*' if not set
+  enable_crc32_metric: true
+  # enable_nb_line_metric: false
+  # list of patterns to apply - metrics can be enable/disabled for each group
+  files:
+    - patterns: ["*.html","assets/*.css","scripts/*.js"]
+	- patterns: ["data/*.csv"]
+	  enable_nb_line_metric: true
+```
+
+### Exported Metrics
 
 | Metric                       | Description                                  | Labels   |
 | ---------------------------- | -------------------------------------------- | -------- |
@@ -46,8 +66,8 @@ Prerequisites:
 
 ### Building
 
-    go get github.com/michael.doubez/filestat_exporter
-    cd ${GOPATH-$HOME/go}/src/github.com/michael.doubez/filestat_exporter
+    go get github.com/michael-doubez/filestat_exporter
+    cd ${GOPATH-$HOME/go}/src/github.com/michael-doubez/filestat_exporter
     make
     ./filestat_exporter <flags> <file glob patterns ...>
 

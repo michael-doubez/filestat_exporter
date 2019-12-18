@@ -7,6 +7,6 @@ exporter:
   # list of patterns to apply
   files:
      - patterns: ['*']
-     # enableCRC32Metric: true
-     # enableNbLineMetric: true
+     # enable_crc32_metric: true
+     # enable_nb_line_metric: true
 
