@@ -1,6 +1,6 @@
 GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
-VERSION    ?= v0.2.0
+VERSION    ?= v0.3.0
 
 # Binary build parameters
 #   - build in release mode
@@ -43,7 +43,7 @@ SRCS = $(wildcard *.go)
 # - version: display version number
 .PHONY: all build clean check dist fmt vet lint run dist dist-%
 
-all:: vet fmt build
+all:: check build
 
 build: $(EXPORTER)
 
@@ -66,9 +66,9 @@ else
 	@$(GOLINT) ./...
 endif
 
-RUN_OPTIONS=-log.level=debug -metric.crc32
+RUN_OPTIONS=-log.level=debug -metric.crc32 -metric.nb_lines
 run:
-	@$(GO) run $(SRCS) $(RUN_OPTIONS) '*.*'
+	@$(GO) run $(SRCS) $(RUN_OPTIONS)
 
 version:
 	@echo $(VERSION)

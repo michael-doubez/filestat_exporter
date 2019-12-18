@@ -5,15 +5,20 @@
 [![GitHub All Releases](https://img.shields.io/github/downloads/michael-doubez/filestat_exporter/total)][releases]
 [![Go Report Card](https://goreportcard.com/badge/github.com/michael-doubez/filestat_exporter)][goreportcard]
 
-Prometheus exporter gathering metrics about file size, modification and other statistics.
+Prometheus exporter gathering metrics about file size, modification time and other statistics.
 
-## Usage
+## Quickstart
+
+Pre-built binaries are available on the [GitHub release page][releases].
+
+### Usage
 
 Configure target files on command line, passing glob patterns in parameters
 
-    ./filestat_exporter './*.*'
+    ./filestat_exporter '*'
 
 Optional flags:
+* __`-config.file <yaml>`:__ The path to the configuration file (use "none" to disable).
 * __`-log.level <level>`:__ Logging level \[debug, info, warn, error, fatal\]. (default: `info`)
 * __`-version`:__ Print the version of the exporter and exit.
 * __`-web.listen-address <port>`:__ Address to listen on for web interface and telemetry. (default: `9943`)
@@ -22,7 +27,28 @@ Optional flags:
 * __`-metric.crc32`:__ Generate CRC32 hash metric of files.
 * __`-metric.nb_lines`:__ Generate line number metric of files.
 
-## Exported Metrics
+The exporter can read a config file in yaml format (`filestat.yaml` by default).
+
+```yaml
+exporter:
+  # Optional working directory - overridden by parameter '-path.cwd'
+  working_directory: "/path/to/my/project"
+  # Default enable/disable of metrics - overridden if not set by parameter '-metric.*'
+  enable_crc32_metric: true
+  # enable_nb_line_metric: false
+  # list of patterns to apply - metrics can be enable/disabled for each group
+  files:
+    - patterns: ["*.html","assets/*.css","scripts/*.js"]
+    - patterns: ["data/*.csv"]
+      enable_nb_line_metric: true
+    - patterns: ["archives/*.tar.gz"]
+      enable_crc32_metric: false
+      enable_nb_line_metric: false
+```
+
+Note: if a file is matched by a pattern more than once, only the first match's config is used
+
+### Exported Metrics
 
 | Metric                       | Description                                  | Labels   |
 | ---------------------------- | -------------------------------------------- | -------- |
@@ -45,8 +71,8 @@ Prerequisites:
 
 ### Building
 
-    go get github.com/michael.doubez/filestat_exporter
-    cd ${GOPATH-$HOME/go}/src/github.com/michael.doubez/filestat_exporter
+    go get github.com/michael-doubez/filestat_exporter
+    cd ${GOPATH-$HOME/go}/src/github.com/michael-doubez/filestat_exporter
     make
     ./filestat_exporter <flags> <file glob patterns ...>
 
@@ -54,9 +80,11 @@ To see all available configuration flags:
 
     ./filestat_exporter -h
 
-### Running checks and tests
-
-    make check
+The Makefile provides several targets:
+* `make check`: Running checks and tests
+* `make run`: Run exporter from go
+* `make version`: Print current version
+* `make build`: Build exporter without checks
 
 ### Cross compiled distribution
 
@@ -83,6 +111,11 @@ docker run -d -p 9943:9943 --name=filestats -v ~/my_files:/data mdoubez/filestat
 # see file metrics
 curl -s docker:9943/metrics | grep file_
 ```
+
+## License
+
+Apache License 2.0, see [LICENSE](https://github.com/michael-doubez/filestat_exporter/blob/master/LICENSE).
+
 
 [circleci]: https://circleci.com/gh/michael-doubez/filestat_exporter
 [dockerhub]: https://hub.docker.com/r/mdoubez/filestat_exporter/

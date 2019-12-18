@@ -56,49 +56,70 @@ var (
 )
 
 // Collector compute metrics for each file matching the patterns
-type fileStatusCollector struct {
+type fileStatCollector struct {
 	filesPatterns      []string
 	enableCRC32Metric  bool
 	enableLineNbMetric bool
 }
 
+// Files collector
+type filesCollector struct {
+	collectors []fileStatCollector
+
+	atLeastOneCRC32Metric  bool
+	atLeastOneLineNbMetric bool
+}
+
 // Describe implements the prometheus.Collector interface.
-func (c *fileStatusCollector) Describe(ch chan<- *prometheus.Desc) {
+func (c *filesCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- fileMatchingGlobNbDesc
 	ch <- fileSizeBytesDesc
 	ch <- fileModifTimeSecondsDesc
-	if c.enableCRC32Metric {
+	if c.atLeastOneCRC32Metric {
 		ch <- fileCRC32HashDesc
 	}
-	if c.enableLineNbMetric {
+	if c.atLeastOneLineNbMetric {
 		ch <- lineNbMetricDesc
 	}
 }
 
 // Collect implements the prometheus.Collector interface.
-func (c *fileStatusCollector) Collect(ch chan<- prometheus.Metric) {
-	set := make(map[string]struct{})
-	for _, pattern := range c.filesPatterns {
-		matchingFileNb := 0
-		if matches, err := filepath.Glob(pattern); err == nil {
-			for _, filePath := range matches {
-				log.Debugln("Collecting file ", filePath)
-				if _, ok := set[filePath]; !ok {
-					set[filePath] = struct{}{}
+func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
+	patternSet := make(map[string]struct{})
+	fileSet := make(map[string]struct{})
+	for _, collector := range c.collectors {
+		for _, pattern := range collector.filesPatterns {
+			// only collect pattern once
+			if _, ok := patternSet[pattern]; ok {
+				continue
+			}
+			patternSet[pattern] = struct{}{}
+
+			// get files matching pattern
+			matchingFileNb := 0
+			if matches, err := filepath.Glob(pattern); err == nil {
+				for _, filePath := range matches {
+					// only collect files once
+					log.Debugln("Collecting file ", filePath)
+					if _, ok := fileSet[filePath]; ok {
+						continue
+					}
+					fileSet[filePath] = struct{}{}
+
 					collectFileMetrics(ch, filePath, &matchingFileNb)
-					if c.enableCRC32Metric || c.enableLineNbMetric {
+					if collector.enableCRC32Metric || collector.enableLineNbMetric {
 						collectContentMetrics(ch, filePath,
-							c.enableCRC32Metric,
-							c.enableLineNbMetric)
+							collector.enableCRC32Metric,
+							collector.enableLineNbMetric)
 					}
 				}
+			} else {
+				log.Debugln("Error getting matches for glob", pattern, "-", err)
 			}
-		} else {
-			log.Debugln("Error getting matches for glob", pattern, "-", err)
+			ch <- prometheus.MustNewConstMetric(fileMatchingGlobNbDesc, prometheus.GaugeValue,
+				float64(matchingFileNb),
+				pattern)
 		}
-		ch <- prometheus.MustNewConstMetric(fileMatchingGlobNbDesc, prometheus.GaugeValue,
-			float64(matchingFileNb),
-			pattern)
 	}
 }
 
