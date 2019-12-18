@@ -1,3 +1,10 @@
+## v0.3.0 / 2019-12-18
+
+### Changes
+
+* [ENHANCEMENT] add config file to replace/complement parameters
+
+
 ## v0.2.0 / 2019-12-15
 
 ### Changes
