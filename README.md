@@ -31,17 +31,22 @@ The exporter can read a config file in yaml format (`filestat.yaml` by default).
 
 ```yaml
 exporter:
-  # Optional working directory - overidden by parameter '-path.cwd'
+  # Optional working directory - overridden by parameter '-path.cwd'
   working_directory: "/path/to/my/project"
-  # Default enable/disable of metrics - overidden by parameter '-metric.*' if not set
+  # Default enable/disable of metrics - overridden if not set by parameter '-metric.*'
   enable_crc32_metric: true
   # enable_nb_line_metric: false
   # list of patterns to apply - metrics can be enable/disabled for each group
   files:
     - patterns: ["*.html","assets/*.css","scripts/*.js"]
-	- patterns: ["data/*.csv"]
-	  enable_nb_line_metric: true
+    - patterns: ["data/*.csv"]
+      enable_nb_line_metric: true
+	- patterns: ["archives/*.tar.gz"]
+	  enable_crc32_metric: false
+	  enable_nb_line_metric: false
 ```
+
+Note: if a file is matched by a pattern more than once, only the first match's config is used
 
 ### Exported Metrics
 
