@@ -41,9 +41,9 @@ exporter:
     - patterns: ["*.html","assets/*.css","scripts/*.js"]
     - patterns: ["data/*.csv"]
       enable_nb_line_metric: true
-	- patterns: ["archives/*.tar.gz"]
-	  enable_crc32_metric: false
-	  enable_nb_line_metric: false
+    - patterns: ["archives/*.tar.gz"]
+      enable_crc32_metric: false
+      enable_nb_line_metric: false
 ```
 
 Note: if a file is matched by a pattern more than once, only the first match's config is used
@@ -80,9 +80,11 @@ To see all available configuration flags:
 
     ./filestat_exporter -h
 
-### Running checks and tests
-
-    make check
+The Makefile provides several targets:
+* `make check`: Running checks and tests
+* `make run`: Run exporter from go
+* `make version`: Print current version
+* `make build`: Build exporter without checks
 
 ### Cross compiled distribution
 
@@ -109,6 +111,11 @@ docker run -d -p 9943:9943 --name=filestats -v ~/my_files:/data mdoubez/filestat
 # see file metrics
 curl -s docker:9943/metrics | grep file_
 ```
+
+## License
+
+Apache License 2.0, see [LICENSE](https://github.com/prometheus/prometheus/blob/master/LICENSE).
+
 
 [circleci]: https://circleci.com/gh/michael-doubez/filestat_exporter
 [dockerhub]: https://hub.docker.com/r/mdoubez/filestat_exporter/

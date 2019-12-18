@@ -43,7 +43,7 @@ SRCS = $(wildcard *.go)
 # - version: display version number
 .PHONY: all build clean check dist fmt vet lint run dist dist-%
 
-all:: vet fmt build
+all:: check build
 
 build: $(EXPORTER)
 
