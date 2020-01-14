@@ -29,7 +29,10 @@ type collectorMetricConfig struct {
 type configExporter struct {
 	collectorMetricConfig `yaml:",inline"`
 
+	ListenAddress    string             `yaml:"listen_address,omitempty"`
+	MetricsPath      string             `yaml:"metrics_path,omitempty"`
 	WorkingDirectory string             `yaml:"working_directory,omitempty"`
+
 	Files            []*collectorConfig `yaml:"files"`
 }
 
