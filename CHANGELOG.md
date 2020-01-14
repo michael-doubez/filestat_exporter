@@ -1,4 +1,4 @@
-## Next version
+## v0.3.1 / 20200115
 
 ### Changes
 

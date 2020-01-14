@@ -1,6 +1,6 @@
 GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
-VERSION    ?= v0.3.0
+VERSION    ?= v0.3.1
 
 # Binary build parameters
 #   - build in release mode
@@ -82,7 +82,7 @@ dist-%: $(DIST_EXPORTER).%.tar.gz
 # Build and package exporter
 
 # List of files to include in packages
-PACKAGE_FILES = LICENSE NOTICE
+PACKAGE_FILES = LICENSE NOTICE filestat.yaml
 
 # In release mode
 #   - build without debug symbol

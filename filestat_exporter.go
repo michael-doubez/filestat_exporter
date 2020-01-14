@@ -28,11 +28,11 @@ import (
 )
 
 const (
-	defaultConfigFile       = "filestat.yaml"
-	defaultLogLevel         = "info"
-	defaultWorkingDir       = "."
-	defaultListenAddress    = ":9943"
-	defaultMetricsPath      = "/metrics"
+	defaultConfigFile    = "filestat.yaml"
+	defaultLogLevel      = "info"
+	defaultWorkingDir    = "."
+	defaultListenAddress = ":9943"
+	defaultMetricsPath   = "/metrics"
 )
 
 func main() {
