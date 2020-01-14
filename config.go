@@ -29,8 +29,8 @@ type collectorMetricConfig struct {
 type configExporter struct {
 	collectorMetricConfig `yaml:",inline"`
 
-	WorkingDirectory string            `yaml:"working_directory,omitempty"`
-	Files            []collectorConfig `yaml:"files"`
+	WorkingDirectory string             `yaml:"working_directory,omitempty"`
+	Files            []*collectorConfig `yaml:"files"`
 }
 
 type collectorConfig struct {
@@ -70,23 +70,33 @@ func readConfig(cfgFile string, defaultCollector *collectorConfig) (*configConte
 			if err != nil {
 				return nil, err
 			}
+		} else {
+			log.Infoln("Could not read config file", cfgFile)
 		}
 	}
 
 	// merge default config
 	if cfg.Exporter.EnableCRC32Metric == nil {
 		log.Infoln("Config from parameter: enable_crc32_metric =", *defaultCollector.EnableCRC32Metric)
+	} else {
+		log.Infoln("General config: enable_crc32_metric =", *cfg.Exporter.EnableCRC32Metric)
 	}
 	if cfg.Exporter.EnableNbLineMetric == nil {
 		log.Infoln("Config from parameter: enable_nb_line_metric =", *defaultCollector.EnableNbLineMetric)
+	} else {
+		log.Infoln("General config: enable_nb_line_metric =", *cfg.Exporter.EnableNbLineMetric)
 	}
 	mergeCollectorMetrics(&cfg.Exporter.collectorMetricConfig, &defaultCollector.collectorMetricConfig)
+
+	// patterns from command line
 	if len(defaultCollector.GlobPatternPath) != 0 {
 		log.Infoln("Adding collection of patterns from command line")
-		cfg.Exporter.Files = append(cfg.Exporter.Files, *defaultCollector)
+		cfg.Exporter.Files = append(cfg.Exporter.Files, defaultCollector)
 	}
+
+	// update collectors with general config
 	for _, collector := range cfg.Exporter.Files {
-		mergeCollectorMetrics(&collector.collectorMetricConfig, &defaultCollector.collectorMetricConfig)
+		mergeCollectorMetrics(&collector.collectorMetricConfig, &cfg.Exporter.collectorMetricConfig)
 	}
 
 	// successful config

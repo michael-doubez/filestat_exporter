@@ -1,3 +1,10 @@
+## Next version
+
+### Changes
+
+* [FIX] crc32 and nb line global configuration not propagated
+
+
 ## v0.3.0 / 2019-12-18
 
 ### Changes
