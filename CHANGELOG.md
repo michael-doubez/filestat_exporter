@@ -2,7 +2,8 @@
 
 ### Changes
 
-* [FIX] crc32 and nb line global configuration not propagated
+* [BUGFIX] crc32 and nb line global configuration not propagated
+* [ENHANCEMENT] add listen address and metrics path config from file
 
 
 ## v0.3.0 / 2019-12-18

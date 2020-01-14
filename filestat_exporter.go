@@ -27,17 +27,25 @@ import (
 	"github.com/prometheus/common/version"
 )
 
+const (
+	defaultConfigFile       = "filestat.yaml"
+	defaultLogLevel         = "info"
+	defaultWorkingDir       = "."
+	defaultListenAddress    = ":9943"
+	defaultMetricsPath      = "/metrics"
+)
+
 func main() {
 	commandLine := flag.NewFlagSet("filestat_exporter", flag.ExitOnError)
 	var (
-		cfgFile       = commandLine.String("config.file", "filestat.yaml", "The path to the configuration file (use \"none\" to disable).")
-		logLevel      = commandLine.String("log.level", "info", "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal].")
+		cfgFile       = commandLine.String("config.file", defaultConfigFile, "The path to the configuration file (use \"none\" to disable).")
+		logLevel      = commandLine.String("log.level", defaultLogLevel, "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal].")
 		crc32Metric   = commandLine.Bool("metric.crc32", false, "Generate CRC32 hash metric of files.")
 		lineNbMetric  = commandLine.Bool("metric.nb_lines", false, "Generate line number metric of files.")
-		workingDir    = commandLine.String("path.cwd", ".", "Working directory of path pattern collection")
+		workingDir    = commandLine.String("path.cwd", defaultWorkingDir, "Working directory of path pattern collection")
 		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
-		listenAddress = commandLine.String("web.listen-address", ":9943", "The address to listen on for HTTP requests.")
-		metricsPath   = commandLine.String("web.telemetry-path", "/metrics", "The path under which to expose metrics.")
+		listenAddress = commandLine.String("web.listen-address", defaultListenAddress, "The address to listen on for HTTP requests.")
+		metricsPath   = commandLine.String("web.telemetry-path", defaultMetricsPath, "The path under which to expose metrics.")
 	)
 	commandLine.Parse(os.Args[1:])
 
@@ -69,9 +77,9 @@ func main() {
 	}
 
 	// adjust working directory globally
-	if *workingDir != "." {
-		if len(config.Exporter.WorkingDirectory) == 0 {
-			log.Infoln("Config from parameter: working_directory =", *workingDir)
+	if *workingDir != defaultWorkingDir {
+		if len(config.Exporter.WorkingDirectory) != 0 {
+			log.Infoln("Config from parameter override: working_directory =", *workingDir)
 		}
 		config.Exporter.WorkingDirectory = *workingDir
 	}
@@ -94,14 +102,32 @@ func main() {
 	log.Infoln("Starting file_status_exporter", version.Info())
 	log.Infoln("Build context", version.BuildContext())
 
-	actualMetricsPath := path.Clean("/" + *metricsPath)
+	// metrics path
+	hasMetricsPathConfig := len(config.Exporter.MetricsPath) != 0
+	if *metricsPath != defaultMetricsPath || !hasMetricsPathConfig {
+		if hasMetricsPathConfig {
+			log.Infoln("Config from parameter override: metrics_path =", *metricsPath)
+		}
+		config.Exporter.MetricsPath = *metricsPath
+	}
+	actualMetricsPath := path.Clean("/" + config.Exporter.MetricsPath)
+	log.Infoln("Path to metrics", actualMetricsPath)
+
+	// listenAddress
+	hasListenAddrConfig := len(config.Exporter.ListenAddress) != 0
+	if *listenAddress != defaultListenAddress || !hasListenAddrConfig {
+		if hasListenAddrConfig {
+			log.Infoln("Config from parameter override: listen_address =", *listenAddress)
+		}
+		config.Exporter.ListenAddress = *listenAddress
+	}
 
 	http.HandleFunc("/", IndexHandler(actualMetricsPath))
 	http.Handle(actualMetricsPath, promhttp.Handler())
 
 	// run exporter
-	log.Infoln("Listening on", *listenAddress)
-	server := &http.Server{Addr: *listenAddress}
+	log.Infoln("Listening on", config.Exporter.ListenAddress)
+	server := &http.Server{Addr: config.Exporter.ListenAddress}
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
