@@ -31,6 +31,10 @@ The exporter can read a config file in yaml format (`filestat.yaml` by default).
 
 ```yaml
 exporter:
+  # Optional network parameters
+  listen_address: ':9943'
+  #metrics_path: /metrics
+  
   # Optional working directory - overridden by parameter '-path.cwd'
   working_directory: "/path/to/my/project"
   # Default enable/disable of metrics - overridden if not set by parameter '-metric.*'
