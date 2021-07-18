@@ -78,6 +78,8 @@ dist: $(foreach ARCH, $(DIST_ARCHITECTURES), $(DIST_EXPORTER).$(ARCH).tar.gz)
 dist-%: $(DIST_EXPORTER).%.tar.gz
 	@echo "Done generating $(notdir $<)"
 
+.PRECIOUS: $(DIST_EXPORTER).%.tar.gz
+
 # ------------------------------------------------------------------------
 # Build and package exporter
 
