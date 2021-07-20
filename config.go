@@ -17,7 +17,8 @@ package main
 import (
 	"os"
 
-	"github.com/prometheus/common/log"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -55,14 +56,14 @@ func mergeCollectorMetrics(collector *collectorMetricConfig, defaultCollector *c
 	}
 }
 
-func readConfig(cfgFile string, defaultCollector *collectorConfig) (*configContent, error) {
+func readConfig(cfgFile string, defaultCollector *collectorConfig, logger log.Logger) (*configContent, error) {
 	cfg := &configContent{}
 
 	// read file if possible
 	if cfgFile != "none" {
 		info, err := os.Stat(cfgFile)
 		if err == nil && !info.IsDir() {
-			log.Infoln("Reading config file", cfgFile)
+			level.Info(logger).Log("msg", "Reading config", "file", cfgFile)
 			r, err := os.Open(cfgFile)
 			if err != nil {
 				return nil, err
@@ -74,26 +75,26 @@ func readConfig(cfgFile string, defaultCollector *collectorConfig) (*configConte
 				return nil, err
 			}
 		} else {
-			log.Infoln("Could not read config file", cfgFile)
+			level.Info(logger).Log("msg", "Could not read config", "file", cfgFile)
 		}
 	}
 
 	// merge default config
 	if cfg.Exporter.EnableCRC32Metric == nil {
-		log.Infoln("Config from parameter: enable_crc32_metric =", *defaultCollector.EnableCRC32Metric)
+		level.Info(logger).Log("msg", "Config", "from", "parameter", "enable_crc32_metric", *defaultCollector.EnableCRC32Metric)
 	} else {
-		log.Infoln("General config: enable_crc32_metric =", *cfg.Exporter.EnableCRC32Metric)
+		level.Info(logger).Log("msg", "Config", "from", "general", "enable_crc32_metric", *cfg.Exporter.EnableCRC32Metric)
 	}
 	if cfg.Exporter.EnableNbLineMetric == nil {
-		log.Infoln("Config from parameter: enable_nb_line_metric =", *defaultCollector.EnableNbLineMetric)
+		level.Info(logger).Log("msg", "Config", "from", "parameter", "enable_nb_line_metric", *defaultCollector.EnableNbLineMetric)
 	} else {
-		log.Infoln("General config: enable_nb_line_metric =", *cfg.Exporter.EnableNbLineMetric)
+		level.Info(logger).Log("msg", "Config", "from", "general", "enable_nb_line_metric", *cfg.Exporter.EnableNbLineMetric)
 	}
 	mergeCollectorMetrics(&cfg.Exporter.collectorMetricConfig, &defaultCollector.collectorMetricConfig)
 
 	// patterns from command line
 	if len(defaultCollector.GlobPatternPath) != 0 {
-		log.Infoln("Adding collection of patterns from command line")
+		level.Info(logger).Log("msg", "Adding collection of patterns", "from", "command line")
 		cfg.Exporter.Files = append(cfg.Exporter.Files, defaultCollector)
 	}
 
@@ -107,8 +108,9 @@ func readConfig(cfgFile string, defaultCollector *collectorConfig) (*configConte
 }
 
 // Generate collector from config
-func (cfg *configContent) generateCollector() *filesCollector {
+func (cfg *configContent) generateCollector(logger log.Logger) *filesCollector {
 	c := filesCollector{}
+	c.logger = logger
 	for _, colCfg := range cfg.Exporter.Files {
 		var col fileStatCollector
 		col.filesPatterns = colCfg.GlobPatternPath
