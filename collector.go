@@ -21,8 +21,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 )
 
 const namespace = "file"
@@ -68,6 +69,8 @@ type filesCollector struct {
 
 	atLeastOneCRC32Metric  bool
 	atLeastOneLineNbMetric bool
+
+	logger log.Logger
 }
 
 // Describe implements the prometheus.Collector interface.
@@ -100,21 +103,22 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 			if matches, err := filepath.Glob(pattern); err == nil {
 				for _, filePath := range matches {
 					// only collect files once
-					log.Debugln("Collecting file ", filePath)
+					level.Debug(c.logger).Log("msg", "Collecting file", "path", filePath)
 					if _, ok := fileSet[filePath]; ok {
 						continue
 					}
 					fileSet[filePath] = struct{}{}
 
-					collectFileMetrics(ch, filePath, &matchingFileNb)
+					collectFileMetrics(ch, filePath, &matchingFileNb, c.logger)
 					if collector.enableCRC32Metric || collector.enableLineNbMetric {
 						collectContentMetrics(ch, filePath,
 							collector.enableCRC32Metric,
-							collector.enableLineNbMetric)
+							collector.enableLineNbMetric,
+							c.logger)
 					}
 				}
 			} else {
-				log.Debugln("Error getting matches for glob", pattern, "-", err)
+				level.Debug(c.logger).Log("msg", "Error getting matches for glob", "pattern", pattern, "reason", err)
 			}
 			ch <- prometheus.MustNewConstMetric(fileMatchingGlobNbDesc, prometheus.GaugeValue,
 				float64(matchingFileNb),
@@ -124,7 +128,7 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 // Collect metrics for a file and feed
-func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *int) {
+func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *int, logger log.Logger) {
 	// Metrics based on Fileinfo
 	if fileinfo, err := os.Stat(filePath); err == nil {
 		if fileinfo.IsDir() {
@@ -139,17 +143,17 @@ func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *in
 			float64(modTime.Unix())+float64(modTime.Nanosecond())/1000000000.0,
 			filePath)
 	} else {
-		log.Debugln("Error getting file info for", filePath, "-", err)
+		level.Debug(logger).Log("msg", "Error getting file info", "path", filePath, "reason", err)
 		return
 	}
 }
 
 // Collect metrics for a file content
 func collectContentMetrics(ch chan<- prometheus.Metric, filePath string,
-	enableCRC32 bool, enableLineNb bool) {
+	enableCRC32 bool, enableLineNb bool, logger log.Logger) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		log.Debugln("Error getting content file hash when opening", filePath, "-", err)
+		level.Debug(logger).Log("msg", "Error getting content file hash while opening", "path", filePath, "reason", err)
 		return
 	}
 	defer file.Close()
@@ -170,7 +174,7 @@ ReadFile:
 		}
 		if enableCRC32 {
 			if _, errHash := hash.Write(slice); errHash != nil {
-				log.Debugln("Error generating CRC32 hash of file", filePath, "-", errHash)
+				level.Debug(logger).Log("msg", "Error generating CRC32 hash of file", "path", filePath, "reason", errHash)
 				enableCRC32 = false
 			}
 		}
@@ -180,7 +184,7 @@ ReadFile:
 			break ReadFile
 
 		case err != nil:
-			log.Debugln("Error reading content of file", filePath, "-", err)
+			level.Debug(logger).Log("msg", "Error reading content of file", "path", filePath, "reason", err)
 			return
 		}
 	}

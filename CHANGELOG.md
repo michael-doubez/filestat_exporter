@@ -1,3 +1,10 @@
+## v0.3.2 / 20210720
+
+## Changes
+
+* [UPDATE] update to latest golang (1.16) and dependencies
+
+
 ## v0.3.1 / 20200115
 
 ### Changes
