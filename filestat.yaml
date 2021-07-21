@@ -15,4 +15,7 @@ exporter:
      - patterns: ['*']
      # enable_crc32_metric: true
      # enable_nb_line_metric: true
+     
+     # Patterns can be recursive - be careful of infinite loop in some cases
+     # - patterns: ['**/*.go']
 

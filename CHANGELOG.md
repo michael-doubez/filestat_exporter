@@ -1,8 +1,16 @@
+## v0.3.3 / 20210721
+
+## Changes
+
+* [ENHANCEMENT] glob format now supports double star and thus recursive walk of directory
+
+
 ## v0.3.2 / 20210720
 
 ## Changes
 
 * [UPDATE] update to latest golang (1.16) and dependencies
+* [CHANGE] log format changed because of switch to go-kit/log
 
 
 ## v0.3.1 / 20200115
