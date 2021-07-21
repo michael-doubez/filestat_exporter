@@ -19,8 +19,8 @@ import (
 	"hash/crc32"
 	"io"
 	"os"
-	"path/filepath"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
@@ -100,7 +100,9 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 
 			// get files matching pattern
 			matchingFileNb := 0
-			if matches, err := filepath.Glob(pattern); err == nil {
+			basepath, patternPart := doublestar.SplitPattern(pattern)
+			fsys := os.DirFS(basepath)
+			if matches, err := doublestar.Glob(fsys, patternPart); err == nil {
 				for _, filePath := range matches {
 					// only collect files once
 					level.Debug(c.logger).Log("msg", "Collecting file", "path", filePath)

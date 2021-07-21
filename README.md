@@ -19,7 +19,7 @@ Configure target files on command line, passing glob patterns in parameters
 
 Optional flags:
 * __`-config.file <yaml>`:__ The path to the configuration file (use "none" to disable).
-* __`-log.level <level>`:__ Logging level \[debug, info, warn, error, fatal\]. (default: `info`)
+* __`-log.level <level>`:__ Logging level \[debug, info, warn, error\]. (default: `info`)
 * __`-version`:__ Print the version of the exporter and exit.
 * __`-web.listen-address <port>`:__ Address to listen on for web interface and telemetry. (default: `9943`)
 * __`-web.telemetry-path <URL path>`:__ Path under which to expose metrics. (default: `/metrics`)
@@ -51,6 +51,13 @@ exporter:
 ```
 
 Note: if a file is matched by a pattern more than once, only the first match's config is used
+
+### Glob pattern format
+
+Glob pattern uses the implementation of [bmatcuk/doublestar](https://github.com/bmatcuk/doublestar#patterns) project:
+* Doublestar (`**`) can be used to match directories recursively. It should appear surrounded by path separators such as `/**/`.
+* Usual [Glob syntax](https://en.wikipedia.org/wiki/Glob_(programming)#Syntax) is still supported.
+
 
 ### Exported Metrics
 
