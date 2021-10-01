@@ -19,6 +19,7 @@ import (
 	"hash/crc32"
 	"io"
 	"os"
+	"path"
 
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/go-kit/log"
@@ -104,16 +105,17 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 			fsys := os.DirFS(basepath)
 			if matches, err := doublestar.Glob(fsys, patternPart); err == nil {
 				for _, filePath := range matches {
+					fqPath := path.Join(basepath, filePath)
 					// only collect files once
-					level.Debug(c.logger).Log("msg", "Collecting file", "path", filePath)
-					if _, ok := fileSet[filePath]; ok {
+					level.Debug(c.logger).Log("msg", "Collecting file", "path", fqPath)
+					if _, ok := fileSet[fqPath]; ok {
 						continue
 					}
-					fileSet[filePath] = struct{}{}
+					fileSet[fqPath] = struct{}{}
 
-					collectFileMetrics(ch, filePath, &matchingFileNb, c.logger)
+					collectFileMetrics(ch, fqPath, &matchingFileNb, c.logger)
 					if collector.enableCRC32Metric || collector.enableLineNbMetric {
-						collectContentMetrics(ch, filePath,
+						collectContentMetrics(ch, fqPath,
 							collector.enableCRC32Metric,
 							collector.enableLineNbMetric,
 							c.logger)
