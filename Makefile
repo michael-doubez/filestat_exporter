@@ -67,8 +67,9 @@ else
 endif
 
 RUN_OPTIONS=-log.level=debug -metric.crc32 -metric.nb_lines
+RUN_PATTERN?='/etc/**/*.conf'
 run:
-	@$(GO) run $(SRCS) $(RUN_OPTIONS)
+	@$(GO) run $(SRCS) $(RUN_OPTIONS) $(RUN_PATTERN)
 
 version:
 	@echo $(VERSION)

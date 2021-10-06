@@ -113,12 +113,13 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 					}
 					fileSet[fqPath] = struct{}{}
 
-					collectFileMetrics(ch, fqPath, &matchingFileNb, c.logger)
-					if collector.enableCRC32Metric || collector.enableLineNbMetric {
-						collectContentMetrics(ch, fqPath,
-							collector.enableCRC32Metric,
-							collector.enableLineNbMetric,
-							c.logger)
+					if collectFileMetrics(ch, fqPath, &matchingFileNb, c.logger) {
+						if collector.enableCRC32Metric || collector.enableLineNbMetric {
+							collectContentMetrics(ch, fqPath,
+								collector.enableCRC32Metric,
+								collector.enableLineNbMetric,
+								c.logger)
+						}
 					}
 				}
 			} else {
@@ -132,11 +133,11 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 // Collect metrics for a file and feed
-func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *int, logger log.Logger) {
+func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *int, logger log.Logger) bool {
 	// Metrics based on Fileinfo
 	if fileinfo, err := os.Stat(filePath); err == nil {
 		if fileinfo.IsDir() {
-			return
+			return false
 		}
 		*nbFile++
 		ch <- prometheus.MustNewConstMetric(fileSizeBytesDesc, prometheus.GaugeValue,
@@ -148,8 +149,9 @@ func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *in
 			filePath)
 	} else {
 		level.Debug(logger).Log("msg", "Error getting file info", "path", filePath, "reason", err)
-		return
+		return false
 	}
+	return true
 }
 
 // Collect metrics for a file content
