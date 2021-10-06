@@ -41,7 +41,7 @@ SRCS = $(wildcard *.go)
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
 # - run: launch exporter on sample config
 # - version: display version number
-.PHONY: all build clean check dist fmt vet lint run dist dist-%
+.PHONY: all build clean check dist fmt vet lint run dist dist-% docker-build docker-tag docker-push
 
 all:: check build
 
@@ -118,3 +118,15 @@ $(DIST_EXPORTER).%/$(EXPORTER): $(SRCS)
 	@echo "Building $(notdir $@) GOOS=$(GOOS) GOARCH=$(GOARCH)"
 	@GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRCS)
 
+# ------------------------------------------------------------------------
+# Docker build of image
+docker-build:
+	docker build -t filestat_exporter:$(VERSION:v%=%) .
+
+docker-tag:
+	docker tag filestat_exporter:$(VERSION:v%=%) mdoubez/filestat_exporter:$(VERSION:v%=%)
+	docker tag filestat_exporter:$(VERSION:v%=%) mdoubez/filestat_exporter:latest
+
+docker-push:
+	docker push mdoubez/filestat_exporter:$(VERSION:v%=%)
+	docker push mdoubez/filestat_exporter:latest
