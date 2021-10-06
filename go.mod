@@ -11,8 +11,7 @@ require (
 	github.com/prometheus/common v0.29.0
 	github.com/prometheus/procfs v0.7.0 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
-	golang.org/x/tools v0.1.5 // indirect
+	golang.org/x/tools v0.1.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

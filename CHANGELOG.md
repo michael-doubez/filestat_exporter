@@ -1,4 +1,14 @@
+## v0.3.4 / 20211006
+
+## Changes
+
+* [BUGFIX] pattern match with base path and directories matching pattern are ignored
+* [BUGFIX] reconstruct the fully qualified pathname of pattern
+
+
 ## v0.3.3 / 20210721
+
+KNOMN BUG: pattern with base path don't work.
 
 ## Changes
 
