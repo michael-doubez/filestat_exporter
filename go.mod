@@ -9,9 +9,10 @@ require (
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/common v0.29.0
+	github.com/prometheus/exporter-toolkit v0.7.0
 	github.com/prometheus/procfs v0.7.0 // indirect
-	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/tools v0.1.7 // indirect
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
+	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

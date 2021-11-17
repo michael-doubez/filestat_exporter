@@ -1,3 +1,10 @@
+## v0.3.5 / 20211117
+
+## Changes
+
+* [ENHANCEMENT] add support of TLS
+
+
 ## v0.3.4 / 20211006
 
 ## Changes
