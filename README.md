@@ -123,6 +123,17 @@ docker run -d -p 9943:9943 --name=filestats -v ~/my_files:/data mdoubez/filestat
 curl -s docker:9943/metrics | grep file_
 ```
 
+## TLS and basic authentication
+
+Filestat Exporter supports TLS and basic authentication. This enables better
+control of the various HTTP endpoints.
+
+To use TLS and/or basic authentication, you need to pass a configuration file
+using the `--web.config.file` parameter. The format of the file is described
+[in the exporter-toolkit repository](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md).
+
+
+
 ## License
 
 Apache License 2.0, see [LICENSE](https://github.com/michael-doubez/filestat_exporter/blob/master/LICENSE).

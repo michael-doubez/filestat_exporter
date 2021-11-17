@@ -26,6 +26,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/promlog"
 	"github.com/prometheus/common/version"
+	"github.com/prometheus/exporter-toolkit/web"
 )
 
 const (
@@ -47,6 +48,7 @@ func main() {
 		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
 		listenAddress = commandLine.String("web.listen-address", defaultListenAddress, "The address to listen on for HTTP requests.")
 		metricsPath   = commandLine.String("web.telemetry-path", defaultMetricsPath, "The path under which to expose metrics.")
+		webcfgFile    = commandLine.String("web.config", "", "Path to config yaml file that can enable TLS or authentication.")
 	)
 	commandLine.Parse(os.Args[1:])
 
@@ -138,8 +140,9 @@ func main() {
 	// run exporter
 	level.Info(logger).Log("msg", "Listening", "port", config.Exporter.ListenAddress)
 	server := &http.Server{Addr: config.Exporter.ListenAddress}
-	if err := server.ListenAndServe(); err != nil {
+	if err := web.ListenAndServe(server, *webcfgFile, logger); err != nil {
 		level.Error(logger).Log("msg", "Listening error", "reason", err)
+		os.Exit(1)
 	}
 }
 
