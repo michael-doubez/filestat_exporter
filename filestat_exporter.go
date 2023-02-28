@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime"
 
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
@@ -48,8 +49,15 @@ func main() {
 		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
 		listenAddress = commandLine.String("web.listen-address", defaultListenAddress, "The address to listen on for HTTP requests.")
 		metricsPath   = commandLine.String("web.telemetry-path", defaultMetricsPath, "The path under which to expose metrics.")
-		webcfgFile    = commandLine.String("web.config", "", "Path to config yaml file that can enable TLS or authentication.")
 	)
+	webConfig := web.FlagConfig{
+		WebListenAddresses: func() *[]string { a := make([]string, 1); return &a }(),
+		WebSystemdSocket:   func() *bool { b := false; return &b }(),
+		WebConfigFile:      commandLine.String("web.config", "", "Path to config yaml file that can enable TLS or authentication."),
+	}
+	if runtime.GOOS == "linux" {
+		webConfig.WebSystemdSocket = commandLine.Bool("web.systemd-socket", false, "Use systemd socket activation listeners instead of port listeners (Linux only).")
+	}
 	commandLine.Parse(os.Args[1:])
 
 	if *printVersion {
@@ -138,9 +146,9 @@ func main() {
 	http.Handle(actualMetricsPath, promhttp.Handler())
 
 	// run exporter
-	level.Info(logger).Log("msg", "Listening", "port", config.Exporter.ListenAddress)
-	server := &http.Server{Addr: config.Exporter.ListenAddress}
-	if err := web.ListenAndServe(server, *webcfgFile, logger); err != nil {
+	(*webConfig.WebListenAddresses)[0] = config.Exporter.ListenAddress
+	server := &http.Server{}
+	if err := web.ListenAndServe(server, &webConfig, logger); err != nil {
 		level.Error(logger).Log("msg", "Listening error", "reason", err)
 		os.Exit(1)
 	}

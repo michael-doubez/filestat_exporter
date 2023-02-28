@@ -23,6 +23,8 @@ Optional flags:
 * __`-version`:__ Print the version of the exporter and exit.
 * __`-web.listen-address <port>`:__ Address to listen on for web interface and telemetry. (default: `9943`)
 * __`-web.telemetry-path <URL path>`:__ Path under which to expose metrics. (default: `/metrics`)
+* __`-web.config <web file>`:__ Path to config yaml file that can enable TLS or authentication.
+* __`-web.systemd-socket`:__ Flag to use systemd socket activation listeners instead of port listeners (Linux only).
 * __`-path.cwd <path>`:__ Change working directory of path pattern collection.
 * __`-metric.crc32`:__ Generate CRC32 hash metric of files.
 * __`-metric.nb_lines`:__ Generate line number metric of files.
@@ -131,7 +133,6 @@ control of the various HTTP endpoints.
 To use TLS and/or basic authentication, you need to pass a configuration file
 using the `--web.config.file` parameter. The format of the file is described
 [in the exporter-toolkit repository](https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md).
-
 
 
 ## License

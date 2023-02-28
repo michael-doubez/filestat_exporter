@@ -8,7 +8,6 @@ RELEASE_MODE ?= 0
 
 # Go projet
 GO = go
-GOLINT = $(shell $(GO) list -f {{.Target}} golang.org/x/lint/golint 2>/dev/null || true)
 
 # Inject version information
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
@@ -41,7 +40,7 @@ SRCS = $(wildcard *.go)
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
 # - run: launch exporter on sample config
 # - version: display version number
-.PHONY: all build clean check dist fmt vet lint run dist dist-% docker-build docker-tag docker-push
+.PHONY: all build clean check dist fmt vet run dist dist-% docker-build docker-tag docker-push
 
 all:: check build
 
@@ -50,21 +49,13 @@ build: $(EXPORTER)
 clean:
 	@rm -f $(EXPORTER)
 
-check: fmt vet lint
+check: fmt vet
 
 fmt:
 	@$(GO) fmt ./...
 
 vet:
 	@$(GO) vet ./...
-
-lint:
-ifeq ($(GOLINT),)
-	@echo >&2 "Warning: golint not installed - lint skipped"
-	@echo >&2 "         run 'go get -u golang.org/x/lint/golint' to install"
-else
-	@$(GOLINT) ./...
-endif
 
 RUN_OPTIONS=-log.level=debug -metric.crc32 -metric.nb_lines
 RUN_PATTERN?='/etc/**/*.conf'

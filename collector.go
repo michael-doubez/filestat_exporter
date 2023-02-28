@@ -90,7 +90,7 @@ func (c *filesCollector) Describe(ch chan<- *prometheus.Desc) {
 // Collect implements the prometheus.Collector interface.
 func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 	patternSet := make(map[string]struct{})
-	fileSet := make(map[string]struct{})
+	fileSet := make(map[string]bool)
 	for _, collector := range c.collectors {
 		for _, pattern := range collector.filesPatterns {
 			// only collect pattern once
@@ -108,12 +108,16 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 					fqPath := path.Join(basepath, filePath)
 					// only collect files once
 					level.Debug(c.logger).Log("msg", "Collecting file", "path", fqPath)
-					if _, ok := fileSet[fqPath]; ok {
+					if isProcessable, ok := fileSet[fqPath]; ok {
+						if isProcessable {
+							matchingFileNb++
+						}
 						continue
 					}
-					fileSet[fqPath] = struct{}{}
 
-					if collectFileMetrics(ch, fqPath, &matchingFileNb, c.logger) {
+					isFileProcessed := collectFileMetrics(ch, fqPath, &matchingFileNb, c.logger)
+					fileSet[fqPath] = isFileProcessed
+					if isFileProcessed {
 						if collector.enableCRC32Metric || collector.enableLineNbMetric {
 							collectContentMetrics(ch, fqPath,
 								collector.enableCRC32Metric,
