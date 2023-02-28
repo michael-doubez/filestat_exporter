@@ -4,14 +4,13 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.16
+      - image: circleci/golang:1.20
 
 jobs:
   check:
     executor: golang
     steps:
       - checkout
-      - run: go get -u golang.org/x/lint/golint
       - run: make check
   build:
     executor: golang
