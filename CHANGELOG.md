@@ -1,3 +1,12 @@
+## v0.3.6 / 20230228
+
+## Changes
+
+* [BUGFIX] increment all pattern matching file
+* [UPDATE] update to latest golang (1.20) and dependencies
+* [UPDATE] adapt to latest version of TLS support for exporters
+
+
 ## v0.3.5 / 20211117
 
 ## Changes

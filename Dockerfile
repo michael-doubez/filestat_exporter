@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine3.13 AS build
+FROM golang:1.20-alpine3.17 AS build
 RUN apk add git
 RUN apk add build-base
 
