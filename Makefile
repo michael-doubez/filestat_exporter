@@ -7,7 +7,16 @@ VERSION    ?= v0.3.6
 RELEASE_MODE ?= 0
 
 # Go projet
-GO = go
+GO ?= go
+GOBIN ?= $(shell $(GO) env GOBIN)
+ifeq ($(GOBIN),)
+  GOPATH ?= $(shell $(GO) env GOPATH)
+  ifeq ($(GOPATH),)
+    $(error Expecting GOPATH to be set)
+  endif
+  GOBIN = $(GOPATH)/bin
+endif
+GOLINT = $(shell ls $(GOBIN)/staticcheck 2>/dev/null || true)
 
 # Inject version information
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
@@ -36,11 +45,12 @@ SRCS = $(wildcard *.go)
 # - check: run all following checks
 #   - fmt: run formating check
 #   - vet: vetting code
+#   - lint: run static check
 # - dist: build distribution packages
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
 # - run: launch exporter on sample config
 # - version: display version number
-.PHONY: all build clean check dist fmt vet run dist dist-% docker-build docker-tag docker-push
+.PHONY: all build clean check dist fmt vet lint run dist dist-% docker-build docker-tag docker-push
 
 all:: check build
 
@@ -49,13 +59,21 @@ build: $(EXPORTER)
 clean:
 	@rm -f $(EXPORTER)
 
-check: fmt vet
+check: fmt vet lint
 
 fmt:
 	@$(GO) fmt ./...
 
 vet:
 	@$(GO) vet ./...
+
+lint:
+ifeq ($(GOLINT),)
+	@echo >&2 "Warning: staticcheck not installed - lint skipped"
+	@echo >&2 "         run 'go install honnef.co/go/tools/cmd/staticcheck@latest' to install"
+else
+	@$(GOLINT) ./...
+endif
 
 RUN_OPTIONS=-log.level=debug -metric.crc32 -metric.nb_lines
 RUN_PATTERN?='/etc/**/*.conf'

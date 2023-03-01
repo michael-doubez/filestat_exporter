@@ -11,6 +11,7 @@ jobs:
     executor: golang
     steps:
       - checkout
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
       - run: make check
   build:
     executor: golang
