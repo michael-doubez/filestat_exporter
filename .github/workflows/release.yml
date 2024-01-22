@@ -1,5 +1,3 @@
-name: Go CI/CD
-
 on:
   push:
     branches:
