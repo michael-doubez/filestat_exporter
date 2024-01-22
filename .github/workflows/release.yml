@@ -1,0 +1,78 @@
+name: Go CI/CD
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  tags:
+    - 'v*.*.*'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.20.1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - name: Run make check
+        run: make check
+
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.20.1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run make build
+        run: make build
+
+  dist:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.21.6
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run make dist
+        run: |
+          make dist RELEASE_MODE=1
+          make version > dist/VERSION
+      - name: Persist dist artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  publish:
+    needs:
+      - check
+      - dist
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.21.6
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Attach dist workspace
+        uses: actions/download-artifact@v2
+        with:
+          name: dist
+          path: dist
+      - name: Generate SHA256 Checksum
+        run: |
+          cd dist
+          sha256sum -b filestat_exporter-*.tar.gz > sha256sums.txt
+      - name: Install ghr
+        run: go install github.com/tcnksm/ghr@latest
+      - name: Publish on GitHub
+        run: |
+          VERSION=$(cat dist/VERSION)
+          rm dist/VERSION
+          ghr -t ${{ secrets.GITHUB_TOKEN }} -u ${{ github.repository_owner }} -r ${{ github.event.repository.name }} -c ${{ github.sha }} -delete ${{ VERSION }} ./dist/
