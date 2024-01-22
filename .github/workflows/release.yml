@@ -30,6 +30,8 @@ jobs:
         run: make build
 
   dist:
+    needs:
+      - build
     runs-on: ubuntu-latest
     container:
       image: golang:1.21.6
