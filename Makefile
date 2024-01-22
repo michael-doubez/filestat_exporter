@@ -1,6 +1,6 @@
 GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
-VERSION    ?= v0.4.0
+VERSION    ?= v0.4.1
 
 # Binary build parameters
 #   - build in release mode
@@ -32,7 +32,7 @@ LDFLAGS = -X github.com/prometheus/common/version.Version=$(VERSION) \
 # Distribution
 DIST_DIR?=./dist
 EXPORTER=filestat_exporter
-DIST_ARCHITECTURES=darwin-amd64 linux-amd64 windows-amd64
+DIST_ARCHITECTURES=darwin-amd64 linux-amd64 windows-amd64 linux-arm64
 
 # Main source files
 SRCS = $(wildcard *.go)
