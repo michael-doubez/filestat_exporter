@@ -74,6 +74,4 @@ jobs:
       - name: Publish on GitHub
         run: |
           ls -hal dist/
-          echo $(cat dist/VERSION)
-          rm dist/VERSION
-          ghr -t ${{ secrets.GITHUB_TOKEN }} -u ${{ github.repository_owner }} -r ${{ github.event.repository.name }} -c ${{ github.sha }} -delete ${{ VERSION }} ./dist/
+
