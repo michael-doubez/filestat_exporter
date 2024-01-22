@@ -20,6 +20,8 @@ jobs:
         run: make check
 
   build:
+    needs:
+      - check
     runs-on: ubuntu-latest
     container:
       image: golang:1.20.1
@@ -50,7 +52,7 @@ jobs:
 
   publish:
     needs:
-      - check
+      - build
       - dist
     runs-on: ubuntu-latest
     container:
@@ -69,8 +71,8 @@ jobs:
           sha256sum -b filestat_exporter-*.tar.gz > sha256sums.txt
       - name: Install ghr
         run: go install github.com/tcnksm/ghr@latest
-#      - name: Publish on GitHub
-#        run: |
-#          VERSION=$(cat dist/VERSION)
-#          rm dist/VERSION
-#          ghr -t ${{ secrets.GITHUB_TOKEN }} -u ${{ github.repository_owner }} -r ${{ github.event.repository.name }} -c ${{ github.sha }} -delete ${{ VERSION }} ./dist/
+      - name: Publish on GitHub
+        run: |
+          VERSION=$(cat dist/VERSION)
+          rm dist/VERSION
+          ghr -t ${{ secrets.GITHUB_TOKEN }} -u ${{ github.repository_owner }} -r ${{ github.event.repository.name }} -c ${{ github.sha }} -delete ${{ VERSION }} ./dist/
