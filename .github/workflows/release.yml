@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - '*'
+      - main
   pull_request:
     branches:
       - '*'
@@ -73,4 +73,5 @@ jobs:
         run: go install github.com/tcnksm/ghr@latest
       - name: Publish on GitHub
         run: |
+          echo $(cat dist/VERSION)
           ghr -t ${{ secrets.GITHUB_TOKEN }} -u ${{ github.repository_owner }} -r ${{ github.event.repository.name }} -c ${{ github.sha }} -delete $(cat dist/VERSION) ./dist/
