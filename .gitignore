@@ -22,3 +22,9 @@ filestat_exporter
 
 # Distribution
 dist/
+
+# Intellij
+.idea
+
+# MacOS
+.DS_Store

@@ -23,8 +23,9 @@ import (
 )
 
 type collectorMetricConfig struct {
-	EnableCRC32Metric  *bool `yaml:"enable_crc32_metric,omitempty"`
-	EnableNbLineMetric *bool `yaml:"enable_nb_line_metric,omitempty"`
+	EnableCRC32Metric  *bool   `yaml:"enable_crc32_metric,omitempty"`
+	EnableNbLineMetric *bool   `yaml:"enable_nb_line_metric,omitempty"`
+	Namespace          *string `yaml:"namespace,omitempty"`
 }
 
 type configExporter struct {
@@ -54,6 +55,9 @@ func mergeCollectorMetrics(collector *collectorMetricConfig, defaultCollector *c
 	if collector.EnableNbLineMetric == nil {
 		collector.EnableNbLineMetric = defaultCollector.EnableNbLineMetric
 	}
+	if collector.Namespace == nil || *collector.Namespace == "" {
+		collector.Namespace = defaultCollector.Namespace
+	}
 }
 
 func readConfig(cfgFile string, defaultCollector *collectorConfig, logger log.Logger) (*configContent, error) {
@@ -78,7 +82,6 @@ func readConfig(cfgFile string, defaultCollector *collectorConfig, logger log.Lo
 			level.Info(logger).Log("msg", "Could not read config", "file", cfgFile)
 		}
 	}
-
 	// merge default config
 	if cfg.Exporter.EnableCRC32Metric == nil {
 		level.Info(logger).Log("msg", "Config", "from", "parameter", "enable_crc32_metric", *defaultCollector.EnableCRC32Metric)
@@ -89,6 +92,11 @@ func readConfig(cfgFile string, defaultCollector *collectorConfig, logger log.Lo
 		level.Info(logger).Log("msg", "Config", "from", "parameter", "enable_nb_line_metric", *defaultCollector.EnableNbLineMetric)
 	} else {
 		level.Info(logger).Log("msg", "Config", "from", "general", "enable_nb_line_metric", *cfg.Exporter.EnableNbLineMetric)
+	}
+	if cfg.Exporter.Namespace == nil {
+		level.Info(logger).Log("msg", "Config", "from", "parameter", "namespace", *defaultCollector.Namespace)
+	} else {
+		level.Info(logger).Log("msg", "Config", "from", "general", "namespace", *cfg.Exporter.Namespace)
 	}
 	mergeCollectorMetrics(&cfg.Exporter.collectorMetricConfig, &defaultCollector.collectorMetricConfig)
 
@@ -114,6 +122,9 @@ func (cfg *configContent) generateCollector(logger log.Logger) *filesCollector {
 	for _, colCfg := range cfg.Exporter.Files {
 		var col fileStatCollector
 		col.filesPatterns = colCfg.GlobPatternPath
+		if colCfg.Namespace != nil {
+			c.namespace = *colCfg.Namespace
+		}
 		if colCfg.EnableCRC32Metric != nil && *colCfg.EnableCRC32Metric {
 			col.enableCRC32Metric = true
 			c.atLeastOneCRC32Metric = true

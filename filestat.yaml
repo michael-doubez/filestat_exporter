@@ -1,6 +1,7 @@
 exporter:
   #! Working directory of exporter
   #working_directory: "."
+  #namespace: "file"
 
   #! Network parameters
   #listen_address: ':9943'
@@ -13,6 +14,7 @@ exporter:
   # list of patterns to apply
   files:
      - patterns: ['*']
+     # namespace: "file"
      # enable_crc32_metric: true
      # enable_nb_line_metric: true
      
