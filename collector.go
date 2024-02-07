@@ -27,35 +27,44 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const namespace = "file"
-
-var (
-	fileMatchingGlobNbDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "glob", "match_number"),
+func fileMatchingGlobNbDesc(ns string) *prometheus.Desc {
+	return prometheus.NewDesc(
+		prometheus.BuildFQName(ns, "glob", "match_number"),
 		"Number of files matching pattern",
 		[]string{"pattern"}, nil,
 	)
-	fileSizeBytesDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "stat", "size_bytes"),
+}
+func fileSizeBytesDesc(ns string) *prometheus.Desc {
+	return prometheus.NewDesc(
+		prometheus.BuildFQName(ns, "stat", "size_bytes"),
 		"Size of file in bytes",
 		[]string{"path"}, nil,
 	)
-	fileModifTimeSecondsDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "stat", "modif_time_seconds"),
+}
+
+func fileModifTimeSecondsDesc(ns string) *prometheus.Desc {
+	return prometheus.NewDesc(
+		prometheus.BuildFQName(ns, "stat", "modif_time_seconds"),
 		"Last modification time of file in epoch time",
 		[]string{"path"}, nil,
 	)
-	fileCRC32HashDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "content", "hash_crc32"),
+}
+
+func fileCRC32HashDesc(ns string) *prometheus.Desc {
+	return prometheus.NewDesc(
+		prometheus.BuildFQName(ns, "content", "hash_crc32"),
 		"CRC32 hash of file content using the IEEE polynomial",
 		[]string{"path"}, nil,
 	)
-	lineNbMetricDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, "content", "line_number"),
+}
+
+func lineNbMetricDesc(ns string) *prometheus.Desc {
+	return prometheus.NewDesc(
+		prometheus.BuildFQName(ns, "content", "line_number"),
 		"Number of lines in file",
 		[]string{"path"}, nil,
 	)
-)
+}
 
 // Collector compute metrics for each file matching the patterns
 type fileStatCollector struct {
@@ -70,20 +79,22 @@ type filesCollector struct {
 
 	atLeastOneCRC32Metric  bool
 	atLeastOneLineNbMetric bool
+	namespace              string
 
 	logger log.Logger
 }
 
 // Describe implements the prometheus.Collector interface.
 func (c *filesCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- fileMatchingGlobNbDesc
-	ch <- fileSizeBytesDesc
-	ch <- fileModifTimeSecondsDesc
+	ns := c.namespace
+	ch <- fileMatchingGlobNbDesc(ns)
+	ch <- fileSizeBytesDesc(ns)
+	ch <- fileModifTimeSecondsDesc(ns)
 	if c.atLeastOneCRC32Metric {
-		ch <- fileCRC32HashDesc
+		ch <- fileCRC32HashDesc(ns)
 	}
 	if c.atLeastOneLineNbMetric {
-		ch <- lineNbMetricDesc
+		ch <- lineNbMetricDesc(ns)
 	}
 }
 
@@ -115,21 +126,22 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 						continue
 					}
 
-					isFileProcessed := collectFileMetrics(ch, fqPath, &matchingFileNb, c.logger)
+					isFileProcessed := collectFileMetrics(ch, fqPath, &matchingFileNb, c.logger, c.namespace)
 					fileSet[fqPath] = isFileProcessed
 					if isFileProcessed {
 						if collector.enableCRC32Metric || collector.enableLineNbMetric {
 							collectContentMetrics(ch, fqPath,
 								collector.enableCRC32Metric,
 								collector.enableLineNbMetric,
-								c.logger)
+								c.logger,
+								c.namespace)
 						}
 					}
 				}
 			} else {
 				level.Debug(c.logger).Log("msg", "Error getting matches for glob", "pattern", pattern, "reason", err)
 			}
-			ch <- prometheus.MustNewConstMetric(fileMatchingGlobNbDesc, prometheus.GaugeValue,
+			ch <- prometheus.MustNewConstMetric(fileMatchingGlobNbDesc(c.namespace), prometheus.GaugeValue,
 				float64(matchingFileNb),
 				pattern)
 		}
@@ -137,18 +149,18 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 // Collect metrics for a file and feed
-func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *int, logger log.Logger) bool {
+func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *int, logger log.Logger, ns string) bool {
 	// Metrics based on Fileinfo
 	if fileinfo, err := os.Stat(filePath); err == nil {
 		if fileinfo.IsDir() {
 			return false
 		}
 		*nbFile++
-		ch <- prometheus.MustNewConstMetric(fileSizeBytesDesc, prometheus.GaugeValue,
+		ch <- prometheus.MustNewConstMetric(fileSizeBytesDesc(ns), prometheus.GaugeValue,
 			float64(fileinfo.Size()),
 			filePath)
 		modTime := fileinfo.ModTime()
-		ch <- prometheus.MustNewConstMetric(fileModifTimeSecondsDesc, prometheus.GaugeValue,
+		ch <- prometheus.MustNewConstMetric(fileModifTimeSecondsDesc(ns), prometheus.GaugeValue,
 			float64(modTime.Unix())+float64(modTime.Nanosecond())/1000000000.0,
 			filePath)
 	} else {
@@ -160,7 +172,7 @@ func collectFileMetrics(ch chan<- prometheus.Metric, filePath string, nbFile *in
 
 // Collect metrics for a file content
 func collectContentMetrics(ch chan<- prometheus.Metric, filePath string,
-	enableCRC32 bool, enableLineNb bool, logger log.Logger) {
+	enableCRC32 bool, enableLineNb bool, logger log.Logger, ns string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		level.Debug(logger).Log("msg", "Error getting content file hash while opening", "path", filePath, "reason", err)
@@ -200,12 +212,12 @@ ReadFile:
 	}
 
 	if enableCRC32 {
-		ch <- prometheus.MustNewConstMetric(fileCRC32HashDesc, prometheus.GaugeValue,
+		ch <- prometheus.MustNewConstMetric(fileCRC32HashDesc(ns), prometheus.GaugeValue,
 			float64(hash.Sum32()),
 			filePath)
 	}
 	if enableLineNb {
-		ch <- prometheus.MustNewConstMetric(lineNbMetricDesc, prometheus.GaugeValue,
+		ch <- prometheus.MustNewConstMetric(lineNbMetricDesc(ns), prometheus.GaugeValue,
 			float64(lineNb),
 			filePath)
 	}
