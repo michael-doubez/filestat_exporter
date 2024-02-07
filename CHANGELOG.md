@@ -1,3 +1,7 @@
+## v0.4.0 / 20240122
+
+* [UPDATE] Major dependency update
+
 ## v0.3.6 / 20230228
 
 ## Changes
