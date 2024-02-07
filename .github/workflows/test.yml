@@ -1,0 +1,29 @@
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.20.1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - name: Run make check
+        run: make check
+
+  build:
+    needs:
+      - check
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.20.1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run make build
+        run: make build
