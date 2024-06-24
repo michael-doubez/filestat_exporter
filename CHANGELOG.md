@@ -1,3 +1,11 @@
+## v0.3.8 / 20240624
+
+## Changes
+
+* [FEATURE] add templating of patterns
+* [UPDATE] update dependencies
+
+
 ## v0.3.7 / 20240216
 
 ## Changes
