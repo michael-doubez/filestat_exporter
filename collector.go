@@ -20,6 +20,8 @@ import (
 	"io"
 	"os"
 	"path"
+	"text/template"
+	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/go-kit/log"
@@ -89,19 +91,37 @@ func (c *filesCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // Collect implements the prometheus.Collector interface.
 func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
+	templater := template.New("pattern").Funcs(
+		template.FuncMap{
+			"now": time.Now,
+		})
 	patternSet := make(map[string]struct{})
 	fileSet := make(map[string]bool)
 	for _, collector := range c.collectors {
 		for _, pattern := range collector.filesPatterns {
+			// expanded pattern
+			realPattern := pattern
+			if p, err := templater.Parse(pattern); err != nil {
+				level.Warn(c.logger).Log("msg", "Error parsing for template", "pattern", pattern, "reason", err)
+				continue
+			} else {
+				var tplout bytes.Buffer
+				if err := p.Execute(&tplout, nil); err != nil {
+					level.Warn(c.logger).Log("msg", "Error applying template", "pattern", pattern, "reason", err)
+					continue
+				}
+				realPattern = tplout.String()
+			}
+
 			// only collect pattern once
-			if _, ok := patternSet[pattern]; ok {
+			if _, ok := patternSet[realPattern]; ok {
 				continue
 			}
-			patternSet[pattern] = struct{}{}
+			patternSet[realPattern] = struct{}{}
 
 			// get files matching pattern
 			matchingFileNb := 0
-			basepath, patternPart := doublestar.SplitPattern(pattern)
+			basepath, patternPart := doublestar.SplitPattern(realPattern)
 			fsys := os.DirFS(basepath)
 			if matches, err := doublestar.Glob(fsys, patternPart); err == nil {
 				for _, filePath := range matches {

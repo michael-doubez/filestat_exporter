@@ -54,11 +54,17 @@ exporter:
 
 Note: if a file is matched by a pattern more than once, only the first match's config is used
 
-### Glob pattern format
+### Pattern format
 
-Glob pattern uses the implementation of [bmatcuk/doublestar](https://github.com/bmatcuk/doublestar#patterns) project:
+Pattern uses the glob implementation of [bmatcuk/doublestar](https://github.com/bmatcuk/doublestar#patterns) project:
 * Doublestar (`**`) can be used to match directories recursively. It should appear surrounded by path separators such as `/**/`.
 * Usual [Glob syntax](https://en.wikipedia.org/wiki/Glob_(programming)#Syntax) is still supported.
+
+Pattern can also use golang template format with the following functions:
+
+| Function  | Description                                   | Example                       |
+| --------- | --------------------------------------------- | ----------------------------- |
+| now       | Current [time](https://pkg.go.dev/time#Time)  | `{{ now.Locale.Year }}/*.tgz` |
 
 
 ### Exported Metrics
