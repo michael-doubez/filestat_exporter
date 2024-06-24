@@ -78,7 +78,7 @@ Note: metrics with `(*)` are only provided if configured
 
 Prerequisites:
 
-* [Go compiler](https://golang.org/dl/) - currently version v1.13
+* [Go compiler](https://golang.org/dl/) - currently version v1.22
 * Linux with make installed
 * Essential build environment for dependencies
 
