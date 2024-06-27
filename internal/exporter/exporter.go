@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package exporter
 
 import (
 	"flag"
@@ -36,9 +36,10 @@ const (
 	defaultWorkingDir    = "."
 	defaultListenAddress = ":9943"
 	defaultMetricsPath   = "/metrics"
+	defaultNoTree        = "-none-"
 )
 
-func main() {
+func Main() int {
 	commandLine := flag.NewFlagSet("filestat_exporter", flag.ExitOnError)
 	var (
 		cfgFile       = commandLine.String("config.file", defaultConfigFile, "The path to the configuration file (use \"none\" to disable).")
@@ -49,6 +50,8 @@ func main() {
 		printVersion  = commandLine.Bool("version", false, "Print the version of the exporter and exit.")
 		listenAddress = commandLine.String("web.listen-address", defaultListenAddress, "The address to listen on for HTTP requests.")
 		metricsPath   = commandLine.String("web.telemetry-path", defaultMetricsPath, "The path under which to expose metrics.")
+		treeName      = commandLine.String("tree.name", defaultNoTree, "Name of tree label to use - default if no label")
+		treeRoot      = commandLine.String("tree.root", "", "Path to use as root of patterns")
 	)
 	webConfig := web.FlagConfig{
 		WebListenAddresses: func() *[]string { a := make([]string, 1); return &a }(),
@@ -62,39 +65,46 @@ func main() {
 
 	if *printVersion {
 		fmt.Fprintf(os.Stderr, "%s\n", version.Print("filestat_exporter"))
-		os.Exit(0)
+		return 0
 	}
 
 	// configuration
-	defaultCollector := &collectorConfig{
-		collectorMetricConfig: collectorMetricConfig{
-			EnableCRC32Metric:  crc32Metric,
-			EnableNbLineMetric: lineNbMetric,
+	defaultCollector := treeConfig{
+		collectorConfig: collectorConfig{
+			collectorMetricConfig: collectorMetricConfig{
+				EnableCRC32Metric:  crc32Metric,
+				EnableNbLineMetric: lineNbMetric,
+			},
+			GlobPatternPath: commandLine.Args(),
 		},
-		GlobPatternPath: commandLine.Args(),
+		TreeName: nil,
+		TreeRoot: treeRoot,
+		Files:    []*collectorConfig{},
 	}
-
+	if *treeName != defaultNoTree {
+		defaultCollector.TreeName = treeName
+	}
 	promlogConfig := &promlog.Config{}
 	promlogConfig.Level = &promlog.AllowedLevel{}
 	promlogConfig.Format = &promlog.AllowedFormat{}
 
 	if err := promlogConfig.Level.Set(*logLevel); err != nil {
 		fmt.Fprintf(os.Stderr, "Wrong loglevel parameter - %s\n", err)
-		os.Exit(1)
+		return 1
 	}
 	promlogConfig.Format.Set("logfmt")
 
 	logger := promlog.New(promlogConfig)
 
-	config, err := readConfig(*cfgFile, defaultCollector, logger)
+	config, err := readConfig(*cfgFile, &defaultCollector, logger)
 	if config == nil {
 		level.Error(logger).Log("msg", "Error reading config", "file", *cfgFile, "reason", err)
-		os.Exit(1)
+		return 1
 	}
 
-	if len(config.Exporter.Files) == 0 {
-		level.Error(logger).Log("msg", "filestat_exporter requires a config file with patterns or at least one argument file to match")
-		os.Exit(1)
+	if len(config.Exporter.Files) == 0 && len(config.Exporter.Trees) == 0 {
+		level.Error(logger).Log("msg", "filestat_exporter requires a config file with patterns or trees or at least one argument file to match")
+		return 1
 	}
 
 	// adjust working directory globally
@@ -107,8 +117,13 @@ func main() {
 	if len(config.Exporter.WorkingDirectory) != 0 {
 		if err := os.Chdir(config.Exporter.WorkingDirectory); err != nil {
 			level.Error(logger).Log("msg", "Could not change to directory", "path", config.Exporter.WorkingDirectory, "reason", err)
-			os.Exit(1)
+			return 1
 		}
+		level.Debug(logger).Log("msg", "Changed working directory", "path", config.Exporter.WorkingDirectory)
+
+	}
+	if path, err := os.Getwd(); err == nil {
+		level.Info(logger).Log("msg", "Working directory", "path", path)
 	}
 
 	// create collector
@@ -116,7 +131,7 @@ func main() {
 	if err := prometheus.Register(collector); err != nil {
 		level.Error(logger).Log("msg", "Could not register collector", "reason", err)
 	} else {
-		level.Info(logger).Log("msg", "Collector ready to collect files")
+		level.Info(logger).Log("msg", "Collector ready to collect files", "nb_tree", len(collector.trees))
 	}
 
 	// setting up exporter
@@ -150,8 +165,10 @@ func main() {
 	server := &http.Server{}
 	if err := web.ListenAndServe(server, &webConfig, logger); err != nil {
 		level.Error(logger).Log("msg", "Listening error", "reason", err)
-		os.Exit(1)
+		return 1
 	}
+
+	return 0
 }
 
 // IndexHandler returns a handler for root display

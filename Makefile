@@ -32,10 +32,11 @@ LDFLAGS = -X github.com/prometheus/common/version.Version=$(VERSION) \
 # Distribution
 DIST_DIR?=./dist
 EXPORTER=filestat_exporter
-DIST_ARCHITECTURES=darwin-amd64 linux-amd64 windows-amd64
+DIST_ARCHITECTURES=darwin-amd64 linux-amd64 windows-amd64 linux-arm64
 
 # Main source files
-SRCS = $(wildcard *.go)
+SRC_MAIN = cmd/filestat_exporter.go
+SRCS = $(SRC_MAIN) $(wildcard internal/*/*.go)
 
 # ------------------------------------------------------------------------
 # Main targets
@@ -46,11 +47,12 @@ SRCS = $(wildcard *.go)
 #   - fmt: run formating check
 #   - vet: vetting code
 #   - lint: run static check
+#   - test: run unit tests
 # - dist: build distribution packages
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
 # - run: launch exporter on sample config
 # - version: display version number
-.PHONY: all build clean check dist fmt vet lint run dist dist-% docker-build docker-tag docker-push
+.PHONY: all build clean check dist fmt vet test lint run dist dist-% docker-build docker-tag docker-push
 
 all:: check build
 
@@ -59,13 +61,16 @@ build: $(EXPORTER)
 clean:
 	@rm -f $(EXPORTER)
 
-check: fmt vet lint
+check: fmt vet lint test
 
 fmt:
 	@$(GO) fmt ./...
 
 vet:
 	@$(GO) vet ./...
+
+test:
+	@$(GO) test -cover ./internal/...
 
 lint:
 ifeq ($(GOLINT),)
@@ -78,7 +83,7 @@ endif
 RUN_OPTIONS=-log.level=debug -metric.crc32 -metric.nb_lines
 RUN_PATTERN?='/etc/**/*.conf'
 run:
-	@$(GO) run $(SRCS) $(RUN_OPTIONS) $(RUN_PATTERN)
+	@$(GO) run $(SRC_MAIN) $(RUN_OPTIONS) $(RUN_PATTERN)
 
 version:
 	@echo $(VERSION)
@@ -106,7 +111,7 @@ endif
 
 # Simple build for current os/architecture
 $(EXPORTER): $(SRCS)
-	@$(GO) build -ldflags "$(LDFLAGS)" -o $@ $(BUILD_FLAGS) $(SRCS)
+	@$(GO) build -ldflags "$(LDFLAGS)" -o $@ $(BUILD_FLAGS) $<
 
 # Ensure dist path exists
 $(DIST_EXPORTER)/:
@@ -125,7 +130,7 @@ $(DIST_EXPORTER).%/$(EXPORTER): GOOS=$(word 1,$(subst -, ,$*))
 $(DIST_EXPORTER).%/$(EXPORTER): GOARCH=$(word 2,$(subst -, ,$*))
 $(DIST_EXPORTER).%/$(EXPORTER): $(SRCS)
 	@echo "Building $(notdir $@) GOOS=$(GOOS) GOARCH=$(GOARCH)"
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRCS)
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRC_MAIN)
 
 # ------------------------------------------------------------------------
 # Docker build of image

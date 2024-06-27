@@ -10,12 +10,27 @@ exporter:
   #enable_crc32_metric: true
   #enable_nb_line_metric: true
 
-  # list of patterns to apply
+  #! name of file tree - used for scoping conflicting file path
+  #tree_name: ""
+  #! path of files will be relative to tree root
+  #tree_root: ""
+
+  #! list of patterns to apply
   files:
      - patterns: ['*']
      # enable_crc32_metric: true
      # enable_nb_line_metric: true
      
-     # Patterns can be recursive - be careful of infinite loop in some cases
+     #! Patterns can be recursive - be careful of infinite loop in some cases
      # - patterns: ['**/*.go']
 
+  #! collecting files in different tree
+  #trees:
+    #- tree_name: project1
+     #! use different tree root to look for files
+     # tree_root: "path/to/project1/"
+     # enable_crc32_metric: true
+     # enable_nb_line_metric: true
+     #  ... same config as general collector
+     #files:
+     #  - patterns: ['*.go']
