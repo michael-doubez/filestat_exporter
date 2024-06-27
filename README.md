@@ -26,6 +26,8 @@ Optional flags:
 * __`-web.config <web file>`:__ Path to config yaml file that can enable TLS or authentication.
 * __`-web.systemd-socket`:__ Flag to use systemd socket activation listeners instead of port listeners (Linux only).
 * __`-path.cwd <path>`:__ Change working directory of path pattern collection.
+* __`-tree.name <name>`:__ Change default tree name used as `tree` label in metrics
+* __`-tree.root <path>`:__ Chnage default root path of files
 * __`-metric.crc32`:__ Generate CRC32 hash metric of files.
 * __`-metric.nb_lines`:__ Generate line number metric of files.
 
@@ -33,12 +35,18 @@ The exporter can read a config file in yaml format (`filestat.yaml` by default).
 
 ```yaml
 exporter:
+  # Optional working directory - overridden by parameter '-path.cwd'
+  working_directory: "/path/to/my/project"
   # Optional network parameters
   listen_address: ':9943'
   #metrics_path: /metrics
   
   # Optional working directory - overridden by parameter '-path.cwd'
   working_directory: "/path/to/my/project"
+  # Optional default tree name and root path - overridden by parameter '-root.name' and '-root.path'
+  #tree_name: ""
+  #tree_root: ""
+
   # Default enable/disable of metrics - overridden if not set by parameter '-metric.*'
   enable_crc32_metric: true
   # enable_nb_line_metric: false
@@ -50,9 +58,15 @@ exporter:
     - patterns: ["archives/*.tar.gz"]
       enable_crc32_metric: false
       enable_nb_line_metric: false
+
+  # other trees
+  trees: []
 ```
 
-Note: if a file is matched by a pattern more than once, only the first match's config is used
+Notes:
+
+  - if a file is matched by a pattern more than once, only the first match's config is used
+  - if no tree name is defined, the label is not used
 
 ### Pattern format
 
@@ -66,16 +80,31 @@ Pattern can also use golang template format with the following functions:
 | --------- | --------------------------------------------- | ----------------------------- |
 | now       | Current [time](https://pkg.go.dev/time#Time)  | `{{ now.Locale.Year }}/*.tgz` |
 
+### Trees
+
+Trees extract files' statistics relatively to a tree root.
+If tree root is empty, it is not applied. The name of the
+tree is used for scoping the metrics.
+
+If defined, the tree root must exists. It can be templated but usual patterns are not used.
+
+```yaml
+- tree_name: name of tree   # optional
+  tree_root: path/to/tree/  # optional
+  #enable_*_metric: true|false # default for tree
+  files: [] # as usual
+```
+
 
 ### Exported Metrics
 
-| Metric                       | Description                                  | Labels   |
-| ---------------------------- | -------------------------------------------- | -------- |
-| file_glob_match_number       | Number of files matching pattern             | pattern  |
-| file_stat_size_bytes         | Size of file in bytes                        | path     |
-| file_stat_modif_time_seconds | Last modification time of file in epoch time | path     |
-| file_content_hash_crc32  (*) | CRC32 hash of file content                   | path     |
-| file_content_line_number (*) | Number of lines in file                      | path     |
+| Metric                         | Description                                  | Labels             |
+| ------------------------------ | -------------------------------------------- | ------------------ |
+| `file_glob_match_number`       | Number of files matching pattern             | `tree`, `pattern`  |
+| `file_stat_size_bytes`         | Size of file in bytes                        | `tree`, `path`     |
+| `file_stat_modif_time_seconds` | Last modification time of file in epoch time | `tree`, `path`     |
+| `file_content_hash_crc32`  (*) | CRC32 hash of file content                   | `tree`, `path`     |
+| `file_content_line_number` (*) | Number of lines in file                      | `tree`, `path`     |
 
 Note: metrics with `(*)` are only provided if configured
 
