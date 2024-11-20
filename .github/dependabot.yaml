@@ -8,3 +8,11 @@ updates:
       - michael-doubez
     commit-message:
       prefix: "[deps] "
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    assignees:
+      - michael-doubez
+    commit-message:
+      prefix: "[docker] "
