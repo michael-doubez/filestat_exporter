@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"hash/crc32"
 	"io"
+	"log/slog"
 	"os"
 	"path"
 	"slices"
@@ -25,8 +26,6 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -101,10 +100,10 @@ type filesCollector struct {
 	fileCRC32HashDesc        *prometheus.Desc
 	lineNbMetricDesc         *prometheus.Desc
 
-	logger log.Logger
+	logger slog.Logger
 }
 
-func createFilesCollector(logger log.Logger, hasTree bool) *filesCollector {
+func createFilesCollector(logger slog.Logger, hasTree bool) *filesCollector {
 	c := filesCollector{}
 	c.trees = make(map[string]*treeCollector)
 	c.common = []string{}
@@ -203,12 +202,12 @@ func (c *filesCollector) CollectTree(ch chan<- prometheus.Metric, templater *tem
 	for _, collector := range tree.collectors {
 		treeRoot, err := apply(templater, collector.treeRoot)
 		if err != nil {
-			level.Warn(c.logger).Log("msg", "Error applying template on tree root", "tree_root", treeRoot, "reason", err)
+			c.logger.Warn("Error applying template on tree root", "tree_root", treeRoot, "reason", err)
 			continue
 		}
 		if len(treeRoot) != 0 {
 			if _, err := os.Stat(treeRoot); os.IsNotExist(err) {
-				level.Debug(c.logger).Log("msg", "Skip collecting file stats because tree root not found", "tree_root", treeRoot)
+				c.logger.Debug("Skip collecting file stats because tree root not found", "tree_root", treeRoot)
 				continue
 			}
 		}
@@ -216,7 +215,7 @@ func (c *filesCollector) CollectTree(ch chan<- prometheus.Metric, templater *tem
 			// expanded pattern
 			realPattern, err := apply(templater, pattern)
 			if err != nil {
-				level.Warn(c.logger).Log("msg", "Error applying template on file pattern", "pattern", pattern, "reason", err)
+				c.logger.Warn("Error applying template on file pattern", "pattern", pattern, "reason", err)
 				continue
 			}
 
@@ -258,7 +257,7 @@ func (c *filesCollector) CollectTree(ch chan<- prometheus.Metric, templater *tem
 					}
 				}
 			} else {
-				level.Debug(c.logger).Log("msg", "Error getting matches for glob", "pattern", pattern, "reason", err)
+				c.logger.Debug("Error getting matches for glob", "pattern", pattern, "reason", err)
 			}
 			ch <- prometheus.MustNewConstMetric(c.fileMatchingGlobNbDesc, prometheus.GaugeValue,
 				float64(matchingFileNb),
@@ -284,7 +283,7 @@ func (c *filesCollector) collectFileMetrics(ch chan<- prometheus.Metric, filePat
 			float64(modTime.Unix())+float64(modTime.Nanosecond())/1000000000.0,
 			metricLabels...)
 	} else {
-		level.Debug(c.logger).Log("msg", "Error getting file info", "path", realFilePath, "reason", err)
+		c.logger.Debug("Error getting file info", "path", realFilePath, "reason", err)
 		return false
 	}
 	return true
@@ -295,7 +294,7 @@ func (c *filesCollector) collectContentMetrics(ch chan<- prometheus.Metric, file
 	enableCRC32 bool, enableLineNb bool, labels []string) {
 	file, err := os.Open(realFilePath)
 	if err != nil {
-		level.Debug(c.logger).Log("msg", "Error getting content file hash while opening", "path", realFilePath, "reason", err)
+		c.logger.Debug("Error getting content file hash while opening", "path", realFilePath, "reason", err)
 		return
 	}
 	defer file.Close()
@@ -316,7 +315,7 @@ ReadFile:
 		}
 		if enableCRC32 {
 			if _, errHash := hash.Write(slice); errHash != nil {
-				level.Debug(c.logger).Log("msg", "Error generating CRC32 hash of file", "path", realFilePath, "reason", errHash)
+				c.logger.Debug("Error generating CRC32 hash of file", "path", realFilePath, "reason", errHash)
 				enableCRC32 = false
 			}
 		}
@@ -326,7 +325,7 @@ ReadFile:
 			break ReadFile
 
 		case err != nil:
-			level.Debug(c.logger).Log("msg", "Error reading content of file", "path", realFilePath, "reason", err)
+			c.logger.Debug("Error reading content of file", "path", realFilePath, "reason", err)
 			return
 		}
 	}

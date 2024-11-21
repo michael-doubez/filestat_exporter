@@ -15,10 +15,9 @@
 package exporter
 
 import (
+	"log/slog"
 	"os"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -39,10 +38,10 @@ type configContent struct {
 
 var emptyTreeName = ""
 
-func (cfg *configContent) readFile(cfgFile string, logger log.Logger) error {
+func (cfg *configContent) readFile(cfgFile string, logger slog.Logger) error {
 	info, err := os.Stat(cfgFile)
 	if err == nil && !info.IsDir() {
-		level.Info(logger).Log("msg", "Reading config", "file", cfgFile)
+		logger.Info("Reading config", "file", cfgFile)
 		r, err := os.Open(cfgFile)
 		if err != nil {
 			return err
@@ -54,12 +53,12 @@ func (cfg *configContent) readFile(cfgFile string, logger log.Logger) error {
 			return err
 		}
 	} else {
-		level.Info(logger).Log("msg", "Could not read config", "file", cfgFile)
+		logger.Info("Could not read config", "file", cfgFile)
 	}
 	return nil
 }
 
-func readConfig(cfgFile string, defaultCollector *treeConfig, logger log.Logger) (*configContent, error) {
+func readConfig(cfgFile string, defaultCollector *treeConfig, logger slog.Logger) (*configContent, error) {
 	cfg := &configContent{}
 
 	// read file if possible
@@ -72,26 +71,26 @@ func readConfig(cfgFile string, defaultCollector *treeConfig, logger log.Logger)
 	// merge default config
 	if cfg.Exporter.TreeName == nil {
 		if defaultCollector.TreeName != nil {
-			level.Info(logger).Log("msg", "Config", "from", "parameter", "tree_name", *defaultCollector.TreeName)
+			logger.Info("Config", "from", "parameter", "tree_name", *defaultCollector.TreeName)
 		}
 	} else {
-		level.Info(logger).Log("msg", "Config", "from", "general", "tree_name", *cfg.Exporter.TreeName)
+		logger.Info("Config", "from", "general", "tree_name", *cfg.Exporter.TreeName)
 	}
 	if defaultCollector.TreeRoot != nil {
-		level.Info(logger).Log("msg", "Config", "from", "parameter", "tree_root", *defaultCollector.TreeRoot)
+		logger.Info("Config", "from", "parameter", "tree_root", *defaultCollector.TreeRoot)
 		cfg.Exporter.TreeRoot = defaultCollector.TreeRoot
 	} else if len(*cfg.Exporter.TreeRoot) > 0 {
-		level.Info(logger).Log("msg", "Config", "from", "general", "tree_root", *cfg.Exporter.TreeRoot)
+		logger.Info("Config", "from", "general", "tree_root", *cfg.Exporter.TreeRoot)
 	}
 	if cfg.Exporter.EnableCRC32Metric == nil {
-		level.Info(logger).Log("msg", "Config", "from", "parameter", "enable_harsh_crc32_metric", *defaultCollector.EnableCRC32Metric)
+		logger.Info("Config", "from", "parameter", "enable_harsh_crc32_metric", *defaultCollector.EnableCRC32Metric)
 	} else {
-		level.Info(logger).Log("msg", "Config", "from", "general", "enable_harsh_crc32_metric", *cfg.Exporter.EnableCRC32Metric)
+		logger.Info("Config", "from", "general", "enable_harsh_crc32_metric", *cfg.Exporter.EnableCRC32Metric)
 	}
 	if cfg.Exporter.EnableNbLineMetric == nil {
-		level.Info(logger).Log("msg", "Config", "from", "parameter", "enable_nb_line_metric", *defaultCollector.EnableNbLineMetric)
+		logger.Info("Config", "from", "parameter", "enable_nb_line_metric", *defaultCollector.EnableNbLineMetric)
 	} else {
-		level.Info(logger).Log("msg", "Config", "from", "general", "enable_nb_line_metric", *cfg.Exporter.EnableNbLineMetric)
+		logger.Info("Config", "from", "general", "enable_nb_line_metric", *cfg.Exporter.EnableNbLineMetric)
 	}
 	mergeTreeConfig(&cfg.Exporter.treeConfig, defaultCollector)
 
@@ -104,7 +103,7 @@ func readConfig(cfgFile string, defaultCollector *treeConfig, logger log.Logger)
 	}
 	// set default tree name is not configured
 	if hasAtLeastOneTreeName && cfg.Exporter.TreeName == nil {
-		level.Info(logger).Log("msg", "Config", "from", "default", "tree_name", "<empty>")
+		logger.Info("Config", "from", "default", "tree_name", "<empty>")
 		cfg.Exporter.TreeName = &emptyTreeName
 		for _, tree := range cfg.Exporter.Trees {
 			if tree.TreeName == nil {
@@ -115,11 +114,11 @@ func readConfig(cfgFile string, defaultCollector *treeConfig, logger log.Logger)
 
 	// patterns from command line
 	if len(defaultCollector.GlobPatternPath) != 0 {
-		level.Info(logger).Log("msg", "Adding collection of patterns", "from", "command line")
+		logger.Info("Adding collection of patterns", "from", "command line")
 		cfg.Exporter.Files = append(cfg.Exporter.Files, &defaultCollector.collectorConfig)
 	}
 
-	level.Debug(logger).Log("msg", "Success config", "content", cfg.toString())
+	logger.Debug("Success config", "content", cfg.toString())
 
 	// successful config
 	return cfg, nil
@@ -135,7 +134,7 @@ func (cfg *configContent) toString() string {
 }
 
 // Generate collector from config
-func (cfg *configContent) generateCollector(logger log.Logger) *filesCollector {
+func (cfg *configContent) generateCollector(logger slog.Logger) *filesCollector {
 	c := createFilesCollector(logger, (cfg.Exporter.TreeName != nil))
 
 	hasAtleastOneCRC32Metric := false
@@ -157,11 +156,11 @@ func (cfg *configContent) generateCollector(logger log.Logger) *filesCollector {
 	}
 
 	if hasAtleastOneCRC32Metric {
-		level.Debug(logger).Log("msg", "Collector creation", "has_at_least_a_crc32_metric", hasAtleastOneCRC32Metric)
+		logger.Debug("Collector creation", "has_at_least_a_crc32_metric", hasAtleastOneCRC32Metric)
 		c.useFileCRC32Metric()
 	}
 	if hasAtleastOneLineNbMetric {
-		level.Debug(logger).Log("msg", "Collector creation", "has_at_least_a_line_nb_metric", hasAtleastOneLineNbMetric)
+		logger.Debug("Collector creation", "has_at_least_a_line_nb_metric", hasAtleastOneLineNbMetric)
 		c.useLineNbMetric()
 	}
 
