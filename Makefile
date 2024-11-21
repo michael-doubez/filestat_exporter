@@ -1,6 +1,6 @@
 GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
-VERSION    ?= v0.3.8
+VERSION    ?= v0.4.0
 
 # Binary build parameters
 #   - build in release mode
