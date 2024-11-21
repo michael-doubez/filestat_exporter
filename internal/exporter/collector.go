@@ -52,13 +52,13 @@ var (
 	}
 	fileCRC32HashOpts = prometheus.Opts{
 		Namespace: namespace,
-		Subsystem: "stat",
-		Name:      "CRC32 hash of file content using the IEEE polynomial",
-		Help:      "Number of files matching pattern",
+		Subsystem: "content",
+		Name:      "hash_crc32",
+		Help:      "CRC32 hash of file content using the IEEE polynomial",
 	}
 	lineNbMetricOpts = prometheus.Opts{
 		Namespace: namespace,
-		Subsystem: "stat",
+		Subsystem: "content",
 		Name:      "line_number",
 		Help:      "Number of lines in file",
 	}
