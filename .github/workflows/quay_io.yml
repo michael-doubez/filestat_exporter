@@ -1,0 +1,20 @@
+name: Push README to Quay.io
+on:
+  push:
+    tags:        
+      - '[0-9]+.[0-9]+.[0-9]+'
+jobs:
+  PushContainerReadme:
+    runs-on: ubuntu-latest
+    name: Push README to Quay.io
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v2
+      - name: push README to Quay.io
+        uses: christian-korneck/update-container-description-action@v1
+        env:
+          DOCKER_APIKEY: ${{ secrets.APIKEY__QUAY_IO }}
+        with:
+          destination_container_repo: quay.io/michael_doubez/filestat_exporter
+          provider: quay
+          readme_file: 'README.md'
