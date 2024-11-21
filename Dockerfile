@@ -3,7 +3,11 @@ RUN apk add git
 RUN apk add build-base
 
 WORKDIR /exporter
-COPY .git Makefile *.go go.mod go.sum /exporter/
+COPY Makefile go.mod go.sum /exporter/
+COPY .git/ ./.git/
+COPY cmd/ ./cmd/
+COPY internal/ ./internal/
+RUN ls -al
 RUN make build RELEASE_MODE=1
 
 FROM alpine:3.19
