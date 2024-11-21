@@ -6,7 +6,7 @@ WORKDIR /exporter
 COPY .git Makefile *.go go.mod go.sum /exporter/
 RUN make build RELEASE_MODE=1
 
-FROM alpine:3.19
+FROM alpine:3.20
 LABEL maintainer="Michael DOUBEZ <michael@doubez.fr>"
 
 COPY --from=build /exporter/filestat_exporter /usr/bin/
