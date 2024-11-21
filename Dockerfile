@@ -1,6 +1,5 @@
-FROM golang:1.22.9-alpine3.19 AS build
-RUN apk add git
-RUN apk add build-base
+FROM golang:1.22.9 AS build
+RUN apt-get install git make
 
 WORKDIR /exporter
 COPY Makefile go.mod go.sum /exporter/
@@ -10,7 +9,7 @@ COPY internal/ ./internal/
 RUN ls -al
 RUN make build RELEASE_MODE=1
 
-FROM alpine:3.19
+FROM scratch
 LABEL maintainer="Michael DOUBEZ <michael@doubez.fr>"
 
 COPY --from=build /exporter/filestat_exporter /usr/bin/

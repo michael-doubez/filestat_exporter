@@ -1,10 +1,11 @@
-## v0.4.0 / 20241121
+## v0.4.0 / 2024-11-21
 
 ## Changes
 
 * [FEATURE] add scoping of files by tree
+* [UPDATE] update dependencies - golang v1.22.9
 
-## v0.3.8 / 20240624
+## v0.3.8 / 2024-06-24
 
 ## Changes
 
@@ -12,14 +13,14 @@
 * [UPDATE] update dependencies
 
 
-## v0.3.7 / 20240216
+## v0.3.7 / 2024-02-16
 
 ## Changes
 
 * [UPDATE] update to latest golang (1.22) and dependencies
 
 
-## v0.3.6 / 20230228
+## v0.3.6 / 2023-02-28
 
 ## Changes
 
@@ -28,14 +29,14 @@
 * [UPDATE] adapt to latest version of TLS support for exporters
 
 
-## v0.3.5 / 20211117
+## v0.3.5 / 2021-11-17
 
 ## Changes
 
 * [ENHANCEMENT] add support of TLS
 
 
-## v0.3.4 / 20211006
+## v0.3.4 / 2021-10-06
 
 ## Changes
 
@@ -43,7 +44,7 @@
 * [BUGFIX] reconstruct the fully qualified pathname of pattern
 
 
-## v0.3.3 / 20210721
+## v0.3.3 / 2021-07-21
 
 KNOMN BUG: pattern with base path don't work.
 
@@ -52,7 +53,7 @@ KNOMN BUG: pattern with base path don't work.
 * [ENHANCEMENT] glob format now supports double star and thus recursive walk of directory
 
 
-## v0.3.2 / 20210720
+## v0.3.2 / 2021-07-20
 
 ## Changes
 
@@ -60,7 +61,7 @@ KNOMN BUG: pattern with base path don't work.
 * [CHANGE] log format changed because of switch to go-kit/log
 
 
-## v0.3.1 / 20200115
+## v0.3.1 / 2020-01-15
 
 ### Changes
 
