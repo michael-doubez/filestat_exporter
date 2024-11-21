@@ -80,8 +80,8 @@ else
 	@$(GOLINT) ./...
 endif
 
-RUN_OPTIONS=-log.level=debug -metric.crc32 -metric.nb_lines
-RUN_PATTERN?='/etc/**/*.conf'
+RUN_OPTIONS=-log.level=debug -metric.crc32 -metric.nb_lines -tree.name debug -tree.root /
+RUN_PATTERN?='/etc/*.conf'
 run:
 	@$(GO) run $(SRC_MAIN) $(RUN_OPTIONS) $(RUN_PATTERN)
 

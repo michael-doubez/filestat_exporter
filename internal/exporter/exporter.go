@@ -22,10 +22,9 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/promlog"
+	"github.com/prometheus/common/promslog"
 	"github.com/prometheus/common/version"
 	"github.com/prometheus/exporter-toolkit/web"
 )
@@ -84,9 +83,9 @@ func Main() int {
 	if *treeName != defaultNoTree {
 		defaultCollector.TreeName = treeName
 	}
-	promlogConfig := &promlog.Config{}
-	promlogConfig.Level = &promlog.AllowedLevel{}
-	promlogConfig.Format = &promlog.AllowedFormat{}
+	promlogConfig := &promslog.Config{}
+	promlogConfig.Level = &promslog.AllowedLevel{}
+	promlogConfig.Format = &promslog.AllowedFormat{}
 
 	if err := promlogConfig.Level.Set(*logLevel); err != nil {
 		fmt.Fprintf(os.Stderr, "Wrong loglevel parameter - %s\n", err)
@@ -94,65 +93,65 @@ func Main() int {
 	}
 	promlogConfig.Format.Set("logfmt")
 
-	logger := promlog.New(promlogConfig)
+	logger := promslog.New(promlogConfig)
 
-	config, err := readConfig(*cfgFile, &defaultCollector, logger)
+	config, err := readConfig(*cfgFile, &defaultCollector, *logger)
 	if config == nil {
-		level.Error(logger).Log("msg", "Error reading config", "file", *cfgFile, "reason", err)
+		logger.Error("Error reading config", "file", *cfgFile, "reason", err)
 		return 1
 	}
 
 	if len(config.Exporter.Files) == 0 && len(config.Exporter.Trees) == 0 {
-		level.Error(logger).Log("msg", "filestat_exporter requires a config file with patterns or trees or at least one argument file to match")
+		logger.Error("filestat_exporter requires a config file with patterns or trees or at least one argument file to match")
 		return 1
 	}
 
 	// adjust working directory globally
 	if *workingDir != defaultWorkingDir {
 		if len(config.Exporter.WorkingDirectory) != 0 {
-			level.Info(logger).Log("msg", "Config override", "from", "parameter", "working_directory", *workingDir)
+			logger.Info("Config override", "from", "parameter", "working_directory", *workingDir)
 		}
 		config.Exporter.WorkingDirectory = *workingDir
 	}
 	if len(config.Exporter.WorkingDirectory) != 0 {
 		if err := os.Chdir(config.Exporter.WorkingDirectory); err != nil {
-			level.Error(logger).Log("msg", "Could not change to directory", "path", config.Exporter.WorkingDirectory, "reason", err)
+			logger.Error("Could not change to directory", "path", config.Exporter.WorkingDirectory, "reason", err)
 			return 1
 		}
-		level.Debug(logger).Log("msg", "Changed working directory", "path", config.Exporter.WorkingDirectory)
+		logger.Debug("Changed working directory", "path", config.Exporter.WorkingDirectory)
 
 	}
 	if path, err := os.Getwd(); err == nil {
-		level.Info(logger).Log("msg", "Working directory", "path", path)
+		logger.Info("Working directory", "path", path)
 	}
 
 	// create collector
-	collector := config.generateCollector(logger)
+	collector := config.generateCollector(*logger)
 	if err := prometheus.Register(collector); err != nil {
-		level.Error(logger).Log("msg", "Could not register collector", "reason", err)
+		logger.Error("Could not register collector", "reason", err)
 	} else {
-		level.Info(logger).Log("msg", "Collector ready to collect files", "nb_tree", len(collector.trees))
+		logger.Info("Collector ready to collect files", "nb_tree", len(collector.trees))
 	}
 
 	// setting up exporter
-	level.Info(logger).Log("msg", "Starting file_status_exporter", "version", version.Info(), "build", version.BuildContext())
+	logger.Info("Starting file_status_exporter", "version", version.Info(), "build", version.BuildContext())
 
 	// metrics path
 	hasMetricsPathConfig := len(config.Exporter.MetricsPath) != 0
 	if *metricsPath != defaultMetricsPath || !hasMetricsPathConfig {
 		if hasMetricsPathConfig {
-			level.Info(logger).Log("msg", "Config override", "from", "parameter", "metrics_path", *metricsPath)
+			logger.Info("Config override", "from", "parameter", "metrics_path", *metricsPath)
 		}
 		config.Exporter.MetricsPath = *metricsPath
 	}
 	actualMetricsPath := path.Clean("/" + config.Exporter.MetricsPath)
-	level.Info(logger).Log("msg", "Path to metrics", "path", actualMetricsPath)
+	logger.Info("Path to metrics", "path", actualMetricsPath)
 
 	// listenAddress
 	hasListenAddrConfig := len(config.Exporter.ListenAddress) != 0
 	if *listenAddress != defaultListenAddress || !hasListenAddrConfig {
 		if hasListenAddrConfig {
-			level.Info(logger).Log("msg", "Config override", "from", "parameter", "listen_address", *listenAddress)
+			logger.Info("Config override", "from", "parameter", "listen_address", *listenAddress)
 		}
 		config.Exporter.ListenAddress = *listenAddress
 	}
@@ -164,7 +163,7 @@ func Main() int {
 	(*webConfig.WebListenAddresses)[0] = config.Exporter.ListenAddress
 	server := &http.Server{}
 	if err := web.ListenAndServe(server, &webConfig, logger); err != nil {
-		level.Error(logger).Log("msg", "Listening error", "reason", err)
+		logger.Error("Listening error", "reason", err)
 		return 1
 	}
 

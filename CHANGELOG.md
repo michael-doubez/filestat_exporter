@@ -1,3 +1,9 @@
+## v0.4.0 / 20241121
+
+## Changes
+
+* [FEATURE] add scoping of files by tree
+
 ## v0.3.8 / 20240624
 
 ## Changes
