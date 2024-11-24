@@ -18,7 +18,7 @@ import (
 	"log/slog"
 	"os"
 
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 type configExporter struct {
@@ -47,7 +47,7 @@ func (cfg *configContent) readFile(cfgFile string, logger slog.Logger) error {
 			return err
 		}
 		decoder := yaml.NewDecoder(r)
-		decoder.SetStrict(true)
+		decoder.KnownFields(true)
 		err = decoder.Decode(cfg)
 		if err != nil {
 			return err
