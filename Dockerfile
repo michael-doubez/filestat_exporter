@@ -1,4 +1,4 @@
-FROM golang:1.22.9 AS build
+FROM golang:1.23.4 AS build
 RUN apt-get install git make
 
 WORKDIR /exporter
