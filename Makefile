@@ -1,6 +1,6 @@
 GITHUB_ORG  = michael-doubez
 GITHUB_REPO = filestat_exporter
-VERSION    ?= v0.4.0
+VERSION    ?= $(shell git describe --tags --match="v[0-9]*")
 
 # Binary build parameters
 #   - build in release mode
