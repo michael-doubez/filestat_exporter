@@ -13,7 +13,7 @@ jobs:
       - name: git checkout
         uses: actions/checkout@v2
       - name: push README to Quay.io
-        uses: christian-korneck/update-container-description-action@v1
+        uses: christian-korneck/update-container-description-action@cf2977b0f3d189227f140ecbc6402c5a042b34e4
         env:
           DOCKER_APIKEY: ${{ secrets.APIKEY__QUAY_IO }}
         with:
