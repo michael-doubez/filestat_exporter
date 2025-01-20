@@ -22,6 +22,8 @@ import (
 	"path"
 	"runtime"
 
+	_ "net/http/pprof"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/promslog"
@@ -42,6 +44,7 @@ func Main() int {
 	commandLine := flag.NewFlagSet("filestat_exporter", flag.ExitOnError)
 	var (
 		cfgFile       = commandLine.String("config.file", defaultConfigFile, "The path to the configuration file (use \"none\" to disable).")
+		debugMode     = commandLine.Bool("debug", false, "Enable debug mode (force loglevel to debug and enable pprof endpoints).")
 		logLevel      = commandLine.String("log.level", defaultLogLevel, "Only log messages with the given severity or above. Valid levels: [debug, info, warn, error].")
 		crc32Metric   = commandLine.Bool("metric.crc32", false, "Generate CRC32 hash metric of files.")
 		lineNbMetric  = commandLine.Bool("metric.nb_lines", false, "Generate line number metric of files.")
@@ -87,6 +90,9 @@ func Main() int {
 	promlogConfig.Level = &promslog.AllowedLevel{}
 	promlogConfig.Format = &promslog.AllowedFormat{}
 
+	if *debugMode {
+		*logLevel = "debug"
+	}
 	if err := promlogConfig.Level.Set(*logLevel); err != nil {
 		fmt.Fprintf(os.Stderr, "Wrong loglevel parameter - %s\n", err)
 		return 1
@@ -156,8 +162,19 @@ func Main() int {
 		config.Exporter.ListenAddress = *listenAddress
 	}
 
-	http.HandleFunc("/", IndexHandler(actualMetricsPath))
+	if !*debugMode {
+		// unregister all handlers - in particular pprof
+		http.DefaultServeMux = http.NewServeMux()
+	} else {
+		logger.Info("Debug mode enables pprof endpoints on /debug/pprof/")
+	}
 	http.Handle(actualMetricsPath, promhttp.Handler())
+	if actualMetricsPath != "/" {
+		if err := SetLandingPage(actualMetricsPath, *debugMode); err != nil {
+			logger.Error("Could not set index page", "reason", err)
+			return 1
+		}
+	}
 
 	// run exporter
 	(*webConfig.WebListenAddresses)[0] = config.Exporter.ListenAddress
@@ -170,19 +187,29 @@ func Main() int {
 	return 0
 }
 
-// IndexHandler returns a handler for root display
-func IndexHandler(metricsPath string) http.HandlerFunc {
-	indexHTML := `<html>
-  <head><title>File Status Exporter</title></head>
-  <body>
-    <h1>File Status Exporter</h1>
-    <p><a href="%s">Metrics</a></p>
-  </body>
-</html>
-`
-	index := []byte(fmt.Sprintf(indexHTML, metricsPath))
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Write(index)
+// Setup index page which server as landing page
+func SetLandingPage(metricsPath string, debugMode bool) error {
+	extraCss := ""
+	if !debugMode {
+		extraCss += "div#pprof{visibility:hidden;}"
 	}
+	landingConfig := web.LandingConfig{
+		Name:        "File Stat Exporter",
+		Description: "Prometheus File Stat Exporter",
+		HeaderColor: "darkgray",
+		Version:     version.Info(),
+		ExtraCSS:    extraCss,
+		Links: []web.LandingLinks{
+			{
+				Address: metricsPath,
+				Text:    "Metrics",
+			},
+		},
+	}
+	landingPage, err := web.NewLandingPage(landingConfig)
+	if err != nil {
+		return err
+	}
+	http.Handle("/", landingPage)
+	return nil
 }
