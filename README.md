@@ -19,6 +19,7 @@ Configure target files on command line, passing glob patterns in parameters
 
 Optional flags:
 * __`-config.file <yaml>`:__ The path to the configuration file (use "none" to disable).
+* __`-debug`:__ Activate debug mode which forces log level to debug and enables pprof.
 * __`-log.level <level>`:__ Logging level \[debug, info, warn, error\]. (default: `info`)
 * __`-version`:__ Print the version of the exporter and exit.
 * __`-web.listen-address <port>`:__ Address to listen on for web interface and telemetry. (default: `9943`)

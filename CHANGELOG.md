@@ -1,3 +1,12 @@
+## v0.4.1 / 2025-01-21
+
+## Changes
+
+* [WEB] use prometheus exporter web landing page + add pprof debug
+* [CVE] update golang.org/x/net
+* [DOCKER] switch to scratch base image
+
+
 ## v0.4.0 / 2024-11-21
 
 ## Changes
