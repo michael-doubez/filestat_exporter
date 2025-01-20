@@ -1,4 +1,8 @@
-FROM golang:1.22.9 AS build
+ARG GO_VERSION=latest
+
+FROM golang:${GO_VERSION} AS build
+ARG VERSION
+
 RUN apt-get install git make
 
 WORKDIR /exporter
@@ -6,11 +10,19 @@ COPY Makefile go.mod go.sum /exporter/
 COPY .git/ ./.git/
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
-RUN ls -al
-RUN make build RELEASE_MODE=1
+
+RUN make build RELEASE_MODE=1 VERSION=${VERSION}
+
 
 FROM scratch
 LABEL maintainer="Michael DOUBEZ <michael@doubez.fr>"
+
+# OpenContainers Annotations Spec
+LABEL org.opencontainers.image.description="Prometheus exporter gathering metrics about file size, modification time and other stats." \
+      org.opencontainers.image.licenses=MIT \
+      org.opencontainers.image.source=https://github.com/michael-doubez/filestat_exporter \
+      org.opencontainers.image.title=filestat_exporter \
+      org.opencontainers.image.version=${VERSION}
 
 COPY --from=build /exporter/filestat_exporter /usr/bin/
 

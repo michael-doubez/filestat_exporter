@@ -50,9 +50,10 @@ SRCS = $(SRC_MAIN) $(wildcard internal/*/*.go)
 #   - test: run unit tests
 # - dist: build distribution packages
 #   - dist-linux-amd64/dist-darwin-amd64/...: distribution for arch
+# - go-version: version of golang in gomod
 # - run: launch exporter on sample config
 # - version: display version number
-.PHONY: all build clean check dist fmt vet test lint run dist dist-% docker-build docker-tag docker-push
+.PHONY: all build clean check dist fmt vet test lint run dist dist-% docker-build docker-tag docker-push go-version
 
 all:: check build
 
@@ -87,6 +88,13 @@ run:
 
 version:
 	@echo $(VERSION)
+
+GO_VERSION=$(shell sed -n 's/^go \(.*\)$$/\1/p' go.mod)
+ifeq ($(GO_VERSION),)
+  GO_VERSION="latest"
+endif
+go-version:
+	@echo "$(GO_VERSION)"
 
 DIST_EXPORTER=$(DIST_DIR)/$(EXPORTER)-$(VERSION)
 dist: $(foreach ARCH, $(DIST_ARCHITECTURES), $(DIST_EXPORTER).$(ARCH).tar.gz)
@@ -135,7 +143,7 @@ $(DIST_EXPORTER).%/$(EXPORTER): $(SRCS)
 # ------------------------------------------------------------------------
 # Docker build of image
 docker-build:
-	docker build -t filestat_exporter:$(VERSION:v%=%) .
+	docker build --build-arg GO_VERSION=$(GO_VERSION) -t filestat_exporter:$(VERSION:v%=%) .
 
 docker-tag:
 	docker tag filestat_exporter:$(VERSION:v%=%) mdoubez/filestat_exporter:$(VERSION:v%=%)

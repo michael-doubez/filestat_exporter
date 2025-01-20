@@ -11,6 +11,18 @@ jobs:
     executor: golang
     steps:
       - checkout
+      - run: |
+          GO_VERSION=`go version | sed -n '/go version/s/.* go\([^ ]\+\) .*/\1/p'`
+          GOMOD_VERSION=`make go-version`
+          if [ "${GO_VERSION}" == "${GOMOD_VERSION}" ] ; then
+            echo >&2 "Go version is expected version: ${GO_VERSION}"
+          else
+            echo >&2 "Error: go version is ${GO_VERSION} but expected version is ${GO_VERSION}"
+            # sed -i '/image: cimg\/go: /s/go:.*/go: '${GOMOD_VERSION}'/' ./.circleci/config.yml
+            # git commit -a -m "[circleci] update go version to ${GOMOD_VERSION}"
+            # git push
+            exit 1
+          fi
       - run: go install honnef.co/go/tools/cmd/staticcheck@latest
       - run: make check
   build:
