@@ -3,7 +3,7 @@ module github.com/michael-doubez/filestat_exporter
 go 1.22.9
 
 require (
-	github.com/bmatcuk/doublestar/v4 v4.7.1
+	github.com/bmatcuk/doublestar/v4 v4.8.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/prometheus/common v0.61.0
 	github.com/prometheus/exporter-toolkit v0.13.2
