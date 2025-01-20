@@ -143,7 +143,7 @@ $(DIST_EXPORTER).%/$(EXPORTER): $(SRCS)
 # ------------------------------------------------------------------------
 # Docker build of image
 docker-build:
-	docker build --build-arg GO_VERSION=$(GO_VERSION) -t filestat_exporter:$(VERSION:v%=%) .
+	docker build --build-arg GO_VERSION=$(GO_VERSION) --build-arg VERSION=$(VERSION) -t filestat_exporter:$(VERSION:v%=%) .
 
 docker-tag:
 	docker tag filestat_exporter:$(VERSION:v%=%) mdoubez/filestat_exporter:$(VERSION:v%=%)

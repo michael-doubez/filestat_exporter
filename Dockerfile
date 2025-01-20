@@ -15,6 +15,8 @@ RUN make build RELEASE_MODE=1 VERSION=${VERSION}
 
 
 FROM scratch
+ARG VERSION
+
 LABEL maintainer="Michael DOUBEZ <michael@doubez.fr>"
 
 # OpenContainers Annotations Spec
