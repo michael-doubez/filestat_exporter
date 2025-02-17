@@ -1,3 +1,12 @@
+## v0.4.2 / 2025-02-17
+
+Fixing docker image.
+
+## Changes
+
+* [DOCKER] fix user nobody in scratch image
+
+
 ## v0.4.1 / 2025-01-21
 
 ## Changes
