@@ -11,7 +11,7 @@ COPY .git/ ./.git/
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 
-RUN make build RELEASE_MODE=1 VERSION=${VERSION}
+RUN CGO_ENABLED=0 make build RELEASE_MODE=1 VERSION=${VERSION}
 
 
 FROM scratch
@@ -26,7 +26,9 @@ LABEL org.opencontainers.image.description="Prometheus exporter gathering metric
       org.opencontainers.image.title=filestat_exporter \
       org.opencontainers.image.version=${VERSION}
 
-COPY --from=build /exporter/filestat_exporter /usr/bin/
+WORKDIR /usr/bin/
+COPY --from=build /exporter/filestat_exporter /usr/bin/filestat_exporter
+COPY --from=build /etc/passwd /etc/passwd
 
 USER nobody
 EXPOSE 9943
