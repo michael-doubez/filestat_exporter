@@ -1,3 +1,12 @@
+## v0.4.3 / 2025-02-18
+
+Fixing bug causing crash when `enable_nb_line_metric` is configured.
+
+## Changes
+
+* [BUG] using line counting metric caused crash
+
+
 ## v0.4.2 / 2025-02-17
 
 Fixing docker image.
