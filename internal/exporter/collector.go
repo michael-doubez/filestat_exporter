@@ -165,7 +165,7 @@ func (c *filesCollector) Describe(ch chan<- *prometheus.Desc) {
 		ch <- c.fileCRC32HashDesc
 	}
 	if c.lineNbMetricDesc != nil {
-		ch <- c.fileCRC32HashDesc
+		ch <- c.lineNbMetricDesc
 	}
 }
 
