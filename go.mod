@@ -4,7 +4,7 @@ go 1.22.9
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.1
-	github.com/prometheus/client_golang v1.20.5
+	github.com/prometheus/client_golang v1.21.0
 	github.com/prometheus/common v0.62.0
 	github.com/prometheus/exporter-toolkit v0.14.0
 	gopkg.in/yaml.v3 v3.0.1
