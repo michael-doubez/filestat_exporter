@@ -1,3 +1,12 @@
+## v0.4.4 / 2025-09-21
+
+Fixing libc version for golang 1.20+
+
+## Changes
+
+* [build] disable cgo
+
+
 ## v0.4.3 / 2025-02-18
 
 Fixing bug causing crash when `enable_nb_line_metric` is configured.
