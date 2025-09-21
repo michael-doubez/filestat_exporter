@@ -141,18 +141,32 @@ $(DIST_EXPORTER).%/$(EXPORTER): $(SRCS)
 	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 $(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRC_MAIN)
 
 # ------------------------------------------------------------------------
+DOCKER_ARCHITECTURES=amd64 arm64
 # Docker build of image
-docker-build:
-	docker build --build-arg GO_VERSION=$(GO_VERSION) --build-arg VERSION=$(VERSION) -t filestat_exporter:$(VERSION:v%=%) .
+docker-build: $(foreach ARCH, $(DOCKER_ARCHITECTURES), docker-build-$(ARCH))
+docker-build-%:
+	docker build --platform=linux/$* --build-arg GO_VERSION=$(GO_VERSION) --build-arg VERSION=$(VERSION) -t filestat_exporter:$(VERSION:v%=%)-$* .
 
-docker-tag:
-	docker tag filestat_exporter:$(VERSION:v%=%) mdoubez/filestat_exporter:$(VERSION:v%=%)
-	docker tag filestat_exporter:$(VERSION:v%=%) mdoubez/filestat_exporter:latest
-	docker tag filestat_exporter:$(VERSION:v%=%) quay.io/michael_doubez/filestat_exporter:$(VERSION:v%=%)
-	docker tag filestat_exporter:$(VERSION:v%=%) quay.io/michael_doubez/filestat_exporter:latest
+docker-tag: $(foreach ARCH, $(DOCKER_ARCHITECTURES), docker-tag-$(ARCH))
+	docker tag filestat_exporter:$(VERSION:v%=%)-amd64 mdoubez/filestat_exporter:$(VERSION:v%=%)
+	docker tag filestat_exporter:$(VERSION:v%=%)-amd64 mdoubez/filestat_exporter:latest
+	docker tag filestat_exporter:$(VERSION:v%=%)-amd64 quay.io/michael_doubez/filestat_exporter:$(VERSION:v%=%)
+	docker tag filestat_exporter:$(VERSION:v%=%)-amd64 quay.io/michael_doubez/filestat_exporter:latest
+docker-tag-%:
+	docker tag filestat_exporter:$(VERSION:v%=%)-$* mdoubez/filestat_exporter:$(VERSION:v%=%)-$*
+	docker tag filestat_exporter:$(VERSION:v%=%)-$* mdoubez/filestat_exporter:latest-$*
+	docker tag filestat_exporter:$(VERSION:v%=%)-$* quay.io/michael_doubez/filestat_exporter:$(VERSION:v%=%)-$*
+	docker tag filestat_exporter:$(VERSION:v%=%)-$* quay.io/michael_doubez/filestat_exporter:latest-$*
 
-docker-push:
+docker-push: $(foreach ARCH, $(DOCKER_ARCHITECTURES), docker-tag-$(ARCH))
 	docker push mdoubez/filestat_exporter:$(VERSION:v%=%)
 	docker push mdoubez/filestat_exporter:latest
 	docker push quay.io/michael_doubez/filestat_exporter:$(VERSION:v%=%)
 	docker push quay.io/michael_doubez/filestat_exporter:latest
+
+docker-push-%:
+	docker push mdoubez/filestat_exporter:$(VERSION:v%=%)-$*
+	docker push mdoubez/filestat_exporter:latest-$*
+	docker push quay.io/michael_doubez/filestat_exporter:$(VERSION:v%=%)-$*
+	docker push quay.io/michael_doubez/filestat_exporter:latest-$*
+

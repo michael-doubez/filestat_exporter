@@ -1,7 +1,10 @@
 ARG GO_VERSION=latest
 
-FROM golang:${GO_VERSION} AS build
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
 ARG VERSION
+
+# these will get injected in by Docker
+ARG TARGETOS TARGETARC
 
 RUN apt-get install git make
 
@@ -11,8 +14,7 @@ COPY .git/ ./.git/
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 
-RUN make build RELEASE_MODE=1 VERSION=${VERSION}
-
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH make build RELEASE_MODE=1 VERSION=${VERSION}
 
 FROM scratch
 ARG VERSION
