@@ -119,7 +119,7 @@ endif
 
 # Simple build for current os/architecture
 $(EXPORTER): $(SRCS)
-	@$(GO) build -ldflags "$(LDFLAGS)" -o $@ $(BUILD_FLAGS) $<
+	@CGO_ENABLED=0 $(GO) build -ldflags "$(LDFLAGS)" -o $@ $(BUILD_FLAGS) $<
 
 # Ensure dist path exists
 $(DIST_EXPORTER)/:
@@ -138,7 +138,7 @@ $(DIST_EXPORTER).%/$(EXPORTER): GOOS=$(word 1,$(subst -, ,$*))
 $(DIST_EXPORTER).%/$(EXPORTER): GOARCH=$(word 2,$(subst -, ,$*))
 $(DIST_EXPORTER).%/$(EXPORTER): $(SRCS)
 	@echo "Building $(notdir $@) GOOS=$(GOOS) GOARCH=$(GOARCH)"
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRC_MAIN)
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 $(GO) build -ldflags "$(LDFLAGS)" -o $@ $(SRC_MAIN)
 
 # ------------------------------------------------------------------------
 # Docker build of image

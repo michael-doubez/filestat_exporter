@@ -11,7 +11,7 @@ COPY .git/ ./.git/
 COPY cmd/ ./cmd/
 COPY internal/ ./internal/
 
-RUN CGO_ENABLED=0 make build RELEASE_MODE=1 VERSION=${VERSION}
+RUN make build RELEASE_MODE=1 VERSION=${VERSION}
 
 
 FROM scratch
