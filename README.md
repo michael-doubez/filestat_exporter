@@ -77,9 +77,13 @@ Pattern uses the glob implementation of [bmatcuk/doublestar](https://github.com/
 
 Pattern can also use golang template format with the following functions:
 
-| Function  | Description                                   | Example                       |
-| --------- | --------------------------------------------- | ----------------------------- |
-| now       | Current [time](https://pkg.go.dev/time#Time)  | `{{ now.Locale.Year }}/*.tgz` |
+| Function | Description                                  | Example                       |
+|----------|----------------------------------------------|-------------------------------|
+| now      | Current [time](https://pkg.go.dev/time#Time) | `{{ now.Locale.Year }}/*.tgz` |
+| add      | Add two int together                         | `{{ add 1 1 }}`               |
+| sub      | Subtracts two int together                   | `{{ sub 1 1 }}`               |
+| addMonth | Add int to time.Month                        | `{{ addMonth now.Month 1 }}`  |
+| subMonth | Subtract int from time.Month                 | `{{ subMonth now.Month 1 }}`  |
 
 ### Trees
 

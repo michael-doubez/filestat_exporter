@@ -173,7 +173,11 @@ func (c *filesCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 	templater := template.New("pattern").Funcs(
 		template.FuncMap{
-			"now": time.Now,
+			"now":      time.Now,
+			"sub":      func(a, b int) int { return a - b },
+			"add":      func(a, b int) int { return a + b },
+			"subMonth": func(a time.Month, b int) int { return int(a) - b },
+			"addMonth": func(a time.Month, b int) int { return int(a) + b },
 		})
 	for _, tree := range c.trees {
 		c.CollectTree(ch, templater, tree)
