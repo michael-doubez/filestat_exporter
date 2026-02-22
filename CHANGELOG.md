@@ -1,8 +1,18 @@
+## v0.4.5 / 2025-09-22
+
+Adding strftime templating
+
+### Changes
+
+* [deps] update all deps (12 minutes ago) <Michael Doubez>
+* [FEATURE] add 'strfTime' template function (55 minutes ago) <Michael Doubez>
+
+
 ## v0.4.4 / 2025-09-21
 
 Fixing libc version for golang 1.20+
 
-## Changes
+### Changes
 
 * [build] disable cgo
 
@@ -11,7 +21,7 @@ Fixing libc version for golang 1.20+
 
 Fixing bug causing crash when `enable_nb_line_metric` is configured.
 
-## Changes
+### Changes
 
 * [BUG] using line counting metric caused crash
 
@@ -20,14 +30,14 @@ Fixing bug causing crash when `enable_nb_line_metric` is configured.
 
 Fixing docker image.
 
-## Changes
+### Changes
 
 * [DOCKER] fix user nobody in scratch image
 
 
 ## v0.4.1 / 2025-01-21
 
-## Changes
+### Changes
 
 * [WEB] use prometheus exporter web landing page + add pprof debug
 * [CVE] update golang.org/x/net
@@ -36,14 +46,14 @@ Fixing docker image.
 
 ## v0.4.0 / 2024-11-21
 
-## Changes
+### Changes
 
 * [FEATURE] add scoping of files by tree
 * [UPDATE] update dependencies - golang v1.22.9
 
 ## v0.3.8 / 2024-06-24
 
-## Changes
+### Changes
 
 * [FEATURE] add templating of patterns
 * [UPDATE] update dependencies
@@ -51,14 +61,14 @@ Fixing docker image.
 
 ## v0.3.7 / 2024-02-16
 
-## Changes
+### Changes
 
 * [UPDATE] update to latest golang (1.22) and dependencies
 
 
 ## v0.3.6 / 2023-02-28
 
-## Changes
+### Changes
 
 * [BUGFIX] increment all pattern matching file
 * [UPDATE] update to latest golang (1.20) and dependencies
@@ -67,14 +77,14 @@ Fixing docker image.
 
 ## v0.3.5 / 2021-11-17
 
-## Changes
+### Changes
 
 * [ENHANCEMENT] add support of TLS
 
 
 ## v0.3.4 / 2021-10-06
 
-## Changes
+### Changes
 
 * [BUGFIX] pattern match with base path and directories matching pattern are ignored
 * [BUGFIX] reconstruct the fully qualified pathname of pattern
@@ -84,14 +94,14 @@ Fixing docker image.
 
 KNOMN BUG: pattern with base path don't work.
 
-## Changes
+### Changes
 
 * [ENHANCEMENT] glob format now supports double star and thus recursive walk of directory
 
 
 ## v0.3.2 / 2021-07-20
 
-## Changes
+### Changes
 
 * [UPDATE] update to latest golang (1.16) and dependencies
 * [CHANGE] log format changed because of switch to go-kit/log
