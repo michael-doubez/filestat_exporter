@@ -4,7 +4,7 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: cimg/go:1.22.9
+      - image: cimg/go:1.25.7
 
 jobs:
   check:
@@ -17,7 +17,7 @@ jobs:
           if [ "${GO_VERSION}" == "${GOMOD_VERSION}" ] ; then
             echo >&2 "Go version is expected version: ${GO_VERSION}"
           else
-            echo >&2 "Error: go version is ${GO_VERSION} but expected version is ${GO_VERSION}"
+            echo >&2 "Error: go version is ${GO_VERSION} but expected version is ${GOMOD_VERSION}"
             # sed -i '/image: cimg\/go: /s/go:.*/go: '${GOMOD_VERSION}'/' ./.circleci/config.yml
             # git commit -a -m "[circleci] update go version to ${GOMOD_VERSION}"
             # git push
