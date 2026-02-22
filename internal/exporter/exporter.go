@@ -87,8 +87,8 @@ func Main() int {
 		defaultCollector.TreeName = treeName
 	}
 	promlogConfig := &promslog.Config{}
-	promlogConfig.Level = &promslog.AllowedLevel{}
-	promlogConfig.Format = &promslog.AllowedFormat{}
+	promlogConfig.Level = promslog.NewLevel()
+	promlogConfig.Format = promslog.NewFormat()
 
 	if *debugMode {
 		*logLevel = "debug"

@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
+	strftime "github.com/ncruces/go-strftime"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -178,6 +179,7 @@ func (c *filesCollector) Collect(ch chan<- prometheus.Metric) {
 			"add":      func(a, b int) int { return a + b },
 			"subMonth": func(a time.Month, b int) int { return int(a) - b },
 			"addMonth": func(a time.Month, b int) int { return int(a) + b },
+			"strfTime": func(t time.Time, fmt string) string { return strftime.Format(fmt, t) },
 		})
 	for _, tree := range c.trees {
 		c.CollectTree(ch, templater, tree)

@@ -158,7 +158,7 @@ docker-tag-%:
 	docker tag filestat_exporter:$(VERSION:v%=%)-$* quay.io/michael_doubez/filestat_exporter:$(VERSION:v%=%)-$*
 	docker tag filestat_exporter:$(VERSION:v%=%)-$* quay.io/michael_doubez/filestat_exporter:latest-$*
 
-docker-push: $(foreach ARCH, $(DOCKER_ARCHITECTURES), docker-tag-$(ARCH))
+docker-push: $(foreach ARCH, $(DOCKER_ARCHITECTURES), docker-push-$(ARCH))
 	docker push mdoubez/filestat_exporter:$(VERSION:v%=%)
 	docker push mdoubez/filestat_exporter:latest
 	docker push quay.io/michael_doubez/filestat_exporter:$(VERSION:v%=%)
