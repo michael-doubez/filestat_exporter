@@ -1,11 +1,11 @@
-## v0.4.5 / 2025-09-22
+## v0.4.5 / 2026-02-22
 
 Adding strftime templating
 
 ### Changes
 
-* [deps] update all deps (12 minutes ago) <Michael Doubez>
-* [FEATURE] add 'strfTime' template function (55 minutes ago) <Michael Doubez>
+* [deps] update all deps
+* [FEATURE] add 'strfTime' template function
 
 
 ## v0.4.4 / 2025-09-21

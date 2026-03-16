@@ -4,7 +4,7 @@ FROM --platform=$BUILDPLATFORM golang:${GO_VERSION} AS build
 ARG VERSION
 
 # these will get injected in by Docker
-ARG TARGETOS TARGETARC
+ARG TARGETOS TARGETARCH
 
 RUN apt-get install git make
 
