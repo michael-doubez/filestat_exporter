@@ -3,7 +3,7 @@ module github.com/michael-doubez/filestat_exporter
 go 1.25.7
 
 require (
-	github.com/bmatcuk/doublestar/v4 v4.10.0
+	github.com/bmatcuk/doublestar/v4 v4.10.2
 	github.com/ncruces/go-strftime v1.0.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.70.0
