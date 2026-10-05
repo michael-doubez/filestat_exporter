@@ -4,7 +4,7 @@ go 1.25.7
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.10.0
-	github.com/ncruces/go-strftime v1.0.0
+	github.com/ncruces/go-strftime v1.1.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.70.0
 	github.com/prometheus/exporter-toolkit v0.17.1
